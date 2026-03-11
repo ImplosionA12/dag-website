@@ -1,0 +1,268 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── CSS Custom Properties ─────────────────────────────────────────────────── */
+
+:root {
+  /* Backgrounds */
+  --bg-void:        #06050A;
+  --bg-primary:     #0A0812;
+  --bg-secondary:   #100E1A;
+  --bg-tertiary:    #171422;
+
+  /* Violet */
+  --violet-deep:    #4A1A7A;
+  --violet-core:    #7B2FBE;
+  --violet-bright:  #9D4EDD;
+  --violet-glow:    rgba(123, 47, 190, 0.4);
+
+  /* Gold */
+  --gold-deep:      #8B6000;
+  --gold-core:      #FFB703;
+  --gold-bright:    #FFD60A;
+  --gold-glow:      rgba(255, 183, 3, 0.4);
+
+  /* Game colors */
+  --ff-color:       #FF4500;
+  --bgmi-color:     #4FC3F7;
+  --valorant-color: #FF4655;
+  --anime-color:    #E040FB;
+
+  /* Text */
+  --text-primary:   #F0ECF7;
+  --text-secondary: #9B8FA8;
+  --text-muted:     #4A4358;
+
+  /* Glass */
+  --glass-bg:       rgba(123, 47, 190, 0.06);
+  --glass-border:   rgba(157, 78, 221, 0.18);
+  --glass-blur:     16px;
+
+  /* Ranks */
+  --rank-gold:      #FFB703;
+  --rank-silver:    #C0C0C0;
+  --rank-bronze:    #CD7F32;
+
+  /* Layout */
+  --ticker-height:  36px;
+  --navbar-height:  64px;
+}
+
+/* ─── Base Reset ────────────────────────────────────────────────────────────── */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+/* ─── Typography Scale ──────────────────────────────────────────────────────── */
+
+.text-hero {
+  font-size: clamp(4rem, 12vw, 10rem);
+  font-family: var(--font-rajdhani), 'Rajdhani', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  line-height: 0.95;
+}
+
+.text-page-heading {
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  font-family: var(--font-rajdhani), 'Rajdhani', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.text-section-heading {
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  font-family: var(--font-rajdhani), 'Rajdhani', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  line-height: 1.1;
+}
+
+.text-card-title {
+  font-size: clamp(1.2rem, 2.5vw, 1.6rem);
+  font-family: var(--font-rajdhani), 'Rajdhani', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+.text-body {
+  font-size: clamp(0.9rem, 1.5vw, 1.05rem);
+  font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+  font-weight: 400;
+  line-height: 1.7;
+}
+
+.text-label {
+  font-size: 0.7rem;
+  font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.text-data {
+  font-family: var(--font-orbitron), 'Orbitron', monospace;
+  font-weight: 600;
+}
+
+.text-data-bold {
+  font-family: var(--font-orbitron), 'Orbitron', monospace;
+  font-weight: 700;
+}
+
+/* ─── Liquid Glass ──────────────────────────────────────────────────────────── */
+
+.liquid-glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+}
+
+/* ─── Skeleton Loading ──────────────────────────────────────────────────────── */
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--bg-secondary) 0%,
+    var(--bg-tertiary) 40%,
+    rgba(123, 47, 190, 0.12) 50%,
+    var(--bg-tertiary) 60%,
+    var(--bg-secondary) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+/* ─── Marquee ───────────────────────────────────────────────────────────────── */
+
+@keyframes marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  display: flex;
+  animation: marquee 30s linear infinite;
+  white-space: nowrap;
+  will-change: transform;
+}
+
+@media (max-width: 767px) {
+  .animate-marquee {
+    animation-duration: 50s;
+  }
+}
+
+/* ─── Neon Pulse (single CTA only) ─────────────────────────────────────────── */
+
+@keyframes neonPulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(255,183,3,0.4), 0 0 20px rgba(255,183,3,0.2); }
+  50%      { box-shadow: 0 0 16px rgba(255,183,3,0.8), 0 0 40px rgba(255,183,3,0.4), 0 0 60px rgba(255,183,3,0.2); }
+}
+
+.animate-neon-pulse {
+  animation: neonPulse 2.5s ease-in-out infinite;
+}
+
+/* ─── Scrollbar ─────────────────────────────────────────────────────────────── */
+
+::-webkit-scrollbar       { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-void); }
+::-webkit-scrollbar-thumb { background: var(--violet-deep); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--violet-core); }
+
+/* ─── Selection ─────────────────────────────────────────────────────────────── */
+
+::selection {
+  background: rgba(123, 47, 190, 0.4);
+  color: var(--text-primary);
+}
+
+/* ─── Focus ─────────────────────────────────────────────────────────────────── */
+
+:focus-visible {
+  outline: 2px solid var(--violet-bright);
+  outline-offset: 2px;
+}
+
+/* ─── Gradient Text Utilities ───────────────────────────────────────────────── */
+
+.text-gold-gradient {
+  background: linear-gradient(135deg, var(--gold-core) 0%, var(--gold-bright) 50%, var(--gold-core) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-violet-gradient {
+  background: linear-gradient(135deg, var(--violet-core) 0%, var(--violet-bright) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── Neon Borders ──────────────────────────────────────────────────────────── */
+
+.neon-border-violet {
+  border: 1px solid var(--violet-bright);
+  box-shadow: 0 0 12px rgba(157, 78, 221, 0.3), inset 0 0 12px rgba(157, 78, 221, 0.05);
+}
+
+.neon-border-gold {
+  border: 1px solid var(--gold-core);
+  box-shadow: 0 0 12px rgba(255, 183, 3, 0.3), inset 0 0 12px rgba(255, 183, 3, 0.05);
+}
+
+/* ─── Page Layout ───────────────────────────────────────────────────────────── */
+
+.page-content {
+  padding-top: calc(var(--ticker-height) + var(--navbar-height));
+  min-height: 100vh;
+}
+
+/* ─── Scroll Bounce (hero indicator) ───────────────────────────────────────── */
+
+@keyframes scrollBounce {
+  0%, 100% { transform: scaleY(0.5); transform-origin: top; opacity: 0.3; }
+  50%       { transform: scaleY(1);   transform-origin: top; opacity: 1;   }
+}
+
+/* ─── Reduced Motion ────────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
