@@ -1,73 +1,45 @@
 'use client'
 
 import { useEffect } from 'react'
+import { GhostButton } from '@/components/ui/GhostButton'
+import { HudLabel } from '@/components/ui/HudLabel'
 
-interface ErrorProps {
+export default function GlobalError({
+  error,
+  reset,
+}: {
   error: Error & { digest?: string }
   reset: () => void
-}
-
-export default function Error({ error, reset }: ErrorProps) {
+}) {
   useEffect(() => {
-    console.error('[DAG Error]', error)
+    console.error('[GlobalError]', error)
   }, [error])
 
   return (
     <div
-      className="page-content flex flex-col items-center justify-center text-center px-6"
-      style={{
-        minHeight: '100vh',
-        background: `
-          radial-gradient(ellipse 60% 40% at 50% 50%, rgba(255,70,85,0.05) 0%, transparent 70%),
-          var(--bg-void)
-        `,
-      }}
+      className="pt-page-top flex flex-col items-center justify-center text-center px-gutter"
+      style={{ minHeight: '100vh', background: 'var(--void)' }}
     >
-      <p
-        style={{
-          fontFamily: 'var(--font-orbitron)',
-          fontSize: 'clamp(3rem, 12vw, 6rem)',
-          fontWeight: 700,
-          color: 'var(--valorant-color)',
-          lineHeight: 1,
-          opacity: 0.15,
-          userSelect: 'none',
-        }}
+      <span
         aria-hidden="true"
+        style={{
+          fontFamily: 'var(--font-display)',
+          fontWeight: 900,
+          fontSize: 'clamp(7rem, 24vw, 18rem)',
+          lineHeight: 0.9,
+          color: 'transparent',
+          WebkitTextStroke: '2px var(--game-valorant)',
+        }}
       >
         ERR
+      </span>
+      <HudLabel color="var(--game-valorant)" className="mt-6">
+        SYSTEM FAILURE // FEED INTERRUPTED
+      </HudLabel>
+      <p className="type-body mt-4 mb-10" style={{ color: 'var(--text-mid)', maxWidth: 420 }}>
+        Something broke mid-broadcast. The crash has been logged — try re-running the sequence.
       </p>
-
-      <h1
-        className="text-page-heading -mt-2"
-        style={{ color: 'var(--text-primary)' }}
-      >
-        System Failure
-      </h1>
-
-      <p
-        className="text-body mt-4 max-w-sm"
-        style={{ color: 'var(--text-secondary)' }}
-      >
-        Something went wrong in the arena. The system logged the incident.
-      </p>
-
-      <button
-        onClick={reset}
-        className="mt-10 inline-flex items-center gap-2 text-label transition-colors duration-150"
-        style={{
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          color: 'var(--gold-core)',
-          letterSpacing: '0.15em',
-          fontFamily: 'var(--font-rajdhani)',
-          fontWeight: 700,
-          textTransform: 'uppercase',
-        }}
-      >
-        ↺ Try Again
-      </button>
+      <GhostButton onClick={reset}>TRY AGAIN</GhostButton>
     </div>
   )
 }

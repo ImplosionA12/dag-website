@@ -1,16 +1,17 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { HallOfFameEntry, FetchState } from '@/types'
 
-export function useHallOfFame(): FetchState<HallOfFameEntry[]> {
+export function useHallOfFame(): FetchState<HallOfFameEntry[]> & { refetch: () => void } {
   const [state, setState] = useState<FetchState<HallOfFameEntry[]>>({
     data: null,
     loading: true,
     error: null,
   })
 
-  useEffect(() => {
+  const fetchHallOfFame = useCallback(() => {
+    setState(prev => ({ ...prev, loading: true, error: null }))
     let cancelled = false
 
     fetch('/api/hall-of-fame')
@@ -20,7 +21,8 @@ export function useHallOfFame(): FetchState<HallOfFameEntry[]> {
       })
       .then(json => {
         if (!cancelled) {
-          setState({ data: json.hall_of_fame ?? [], loading: false, error: null })
+          const hall_of_fame = Array.isArray(json.hall_of_fame) ? json.hall_of_fame : []
+          setState({ data: hall_of_fame, loading: false, error: null })
         }
       })
       .catch(err => {
@@ -32,5 +34,9 @@ export function useHallOfFame(): FetchState<HallOfFameEntry[]> {
     return () => { cancelled = true }
   }, [])
 
-  return state
+  useEffect(() => {
+    return fetchHallOfFame()
+  }, [fetchHallOfFame])
+
+  return { ...state, refetch: fetchHallOfFame }
 }

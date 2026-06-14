@@ -1,12 +1,5 @@
 import { GameType } from '@/types'
-
-const BADGE_STYLES: Record<GameType, { bg: string; border: string; text: string; label: string }> = {
-  FF:       { bg: 'rgba(255,69,0,0.15)',    border: 'rgba(255,69,0,0.5)',    text: '#FF6B35', label: 'FREE FIRE'  },
-  BGMI:     { bg: 'rgba(79,195,247,0.15)',  border: 'rgba(79,195,247,0.5)',  text: '#4FC3F7', label: 'BGMI'       },
-  Valorant: { bg: 'rgba(255,70,85,0.15)',   border: 'rgba(255,70,85,0.5)',   text: '#FF4655', label: 'VALORANT'   },
-  Anime:    { bg: 'rgba(224,64,251,0.15)',  border: 'rgba(224,64,251,0.5)',  text: '#E040FB', label: 'ANIME'      },
-  Other:    { bg: 'rgba(155,143,168,0.15)', border: 'rgba(155,143,168,0.4)', text: '#9B8FA8', label: 'OTHER'      },
-}
+import { GAME_COLORS, GAME_LABELS, clsx } from '@/lib/utils'
 
 interface GameBadgeProps {
   game: GameType
@@ -14,23 +7,39 @@ interface GameBadgeProps {
   className?: string
 }
 
+/**
+ * Game tag — accent slash + label in HUD type. Color from GAME_COLORS.
+ */
 export function GameBadge({ game, size = 'sm', className = '' }: GameBadgeProps) {
-  const style = BADGE_STYLES[game] ?? BADGE_STYLES['Other']
+  const color = GAME_COLORS[game] ?? GAME_COLORS.Other
+  const label = (GAME_LABELS[game] ?? GAME_LABELS.Other).toUpperCase()
 
   return (
     <span
-      className={`inline-flex items-center rounded-sm font-medium tracking-widest ${
-        size === 'sm' ? 'px-2 py-0.5 text-[0.6rem]' : 'px-3 py-1 text-[0.7rem]'
-      } ${className}`}
+      className={clsx(
+        'inline-flex items-center gap-1.5',
+        size === 'sm' ? 'px-2 py-0.5 text-[0.58rem]' : 'px-3 py-1 text-[0.68rem]',
+        className
+      )}
       style={{
-        backgroundColor: style.bg,
-        border: `1px solid ${style.border}`,
-        color: style.text,
-        fontFamily: 'var(--font-orbitron), monospace',
-        letterSpacing: '0.1em',
+        border: '1px solid var(--line-1)',
+        color,
+        fontFamily: 'var(--font-hud), monospace',
+        fontWeight: 600,
+        letterSpacing: '0.14em',
       }}
     >
-      {style.label}
+      <span
+        aria-hidden="true"
+        style={{
+          width: 8,
+          height: 1.5,
+          background: color,
+          transform: 'skewX(-30deg)',
+          display: 'inline-block',
+        }}
+      />
+      {label}
     </span>
   )
 }

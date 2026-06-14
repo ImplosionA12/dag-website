@@ -8,104 +8,98 @@ const config: Config = {
   ],
   theme: {
     extend: {
-      // ─── Colors ────────────────────────────────────────────────────────
+      // ─── Colors — mapped to CSS variables so zone theming works per page ─
       colors: {
-        // Backgrounds
-        'bg-void':      '#06050A',
-        'bg-primary':   '#0A0812',
-        'bg-secondary': '#100E1A',
-        'bg-tertiary':  '#171422',
+        void:        'var(--void)',
+        'surface-1': 'var(--surface-1)',
+        'surface-2': 'var(--surface-2)',
+        'surface-3': 'var(--surface-3)',
 
-        // Violet — primary identity
-        'violet-deep':   '#4A1A7A',
-        'violet-core':   '#7B2FBE',
-        'violet-bright': '#9D4EDD',
+        violet: {
+          700: 'var(--violet-700)',
+          500: 'var(--violet-500)',
+          300: 'var(--violet-300)',
+        },
 
-        // Gold — champions, prestige
-        'gold-deep':   '#8B6000',
-        'gold-core':   '#FFB703',
-        'gold-bright': '#FFD60A',
+        // Gold is VICTORY ONLY: primary CTAs, rank #1, Hall of Fame zone
+        gold: {
+          600: 'var(--gold-600)',
+          400: 'var(--gold-400)',
+          200: 'var(--gold-200)',
+        },
 
-        // Game-specific accents
-        'ff-color':       '#FF4500',
-        'bgmi-color':     '#4FC3F7',
-        'valorant-color': '#FF4655',
-        'anime-color':    '#E040FB',
+        game: {
+          ff:       'var(--game-ff)',
+          bgmi:     'var(--game-bgmi)',
+          valorant: 'var(--game-valorant)',
+          anime:    'var(--game-anime)',
+          other:    'var(--game-other)',
+        },
 
-        // Text
-        'text-primary':   '#F0ECF7',
-        'text-secondary': '#9B8FA8',
-        'text-muted':     '#4A4358',
+        zone: 'var(--zone-accent)',
 
-        // Rank
-        'rank-gold':   '#FFB703',
-        'rank-silver': '#C0C0C0',
-        'rank-bronze': '#CD7F32',
+        ink: {
+          hi:  'var(--text-hi)',
+          mid: 'var(--text-mid)',
+          lo:  'var(--text-lo)',
+        },
+
+        line: {
+          1: 'var(--line-1)',
+          2: 'var(--line-2)',
+        },
       },
 
-      // ─── Font Families ─────────────────────────────────────────────────
+      // ─── Font Families ───────────────────────────────────────────────────
       fontFamily: {
-        rajdhani: ['var(--font-rajdhani)', 'sans-serif'],
-        'dm-sans': ['var(--font-dm-sans)', 'sans-serif'],
-        orbitron:  ['var(--font-orbitron)', 'monospace'],
+        display: ['var(--font-display)', 'sans-serif'],
+        hud:     ['var(--font-hud)', 'monospace'],
+        body:    ['var(--font-body)', 'sans-serif'],
       },
 
-      // ─── Spacing ───────────────────────────────────────────────────────
+      // ─── Z-Index Scale ───────────────────────────────────────────────────
+      zIndex: {
+        menu:       '45',
+        nav:        '50',
+        ticker:     '60',
+        transition: '80',
+        grain:      '90',
+        cursor:     '100',
+      },
+
+      // ─── Spacing ─────────────────────────────────────────────────────────
       spacing: {
-        'section':    '10rem',
-        'section-lg': '12.5rem',
-        'ticker':     '2.25rem',
-        'navbar':     '4rem',
-        'navbar-mobile': '3.5rem',
+        gutter:     'var(--gutter)',
+        ticker:     'var(--ticker-h)',
+        nav:        'var(--nav-h)',
+        'page-top': 'var(--page-top)',
+        section:    'clamp(6rem, 14vh, 11rem)',
       },
 
-      // ─── Animation ────────────────────────────────────────────────────
+      // ─── Animation ───────────────────────────────────────────────────────
       animation: {
-        'marquee':    'marquee 30s linear infinite',
-        'neon-pulse': 'neonPulse 2.5s ease-in-out infinite',
-        'shimmer':    'shimmer 1.8s ease-in-out infinite',
-        'gold-bloom': 'goldBloom 0.8s ease-out forwards',
-        'fade-in':    'fadeIn 0.4s ease-out forwards',
-        'slide-up':   'slideUp 0.5s ease-out forwards',
+        marquee:      'marquee 32s linear infinite',
+        shimmer:      'shimmer 1.8s ease-in-out infinite',
+        flicker:      'flicker 1.6s steps(2) infinite',
+        'pulse-gold': 'pulseGold 2.8s ease-in-out infinite',
       },
       keyframes: {
         marquee: {
           '0%':   { transform: 'translateX(0)' },
           '100%': { transform: 'translateX(-50%)' },
         },
-        neonPulse: {
-          '0%, 100%': { boxShadow: '0 0 8px rgba(255,183,3,0.4), 0 0 20px rgba(255,183,3,0.2)' },
-          '50%':      { boxShadow: '0 0 16px rgba(255,183,3,0.8), 0 0 40px rgba(255,183,3,0.4), 0 0 60px rgba(255,183,3,0.2)' },
-        },
         shimmer: {
           '0%':   { backgroundPosition: '-200% 0' },
           '100%': { backgroundPosition: '200% 0' },
         },
-        goldBloom: {
-          '0%':   { opacity: '0.3' },
-          '50%':  { opacity: '0.8' },
-          '100%': { opacity: '1' },
+        flicker: {
+          '0%, 100%': { opacity: '1' },
+          '50%':      { opacity: '0.25' },
         },
-        fadeIn: {
-          '0%':   { opacity: '0' },
-          '100%': { opacity: '1' },
+        pulseGold: {
+          '0%, 100%': { boxShadow: '0 0 10px rgba(255,183,3,0.25), 0 0 28px rgba(255,183,3,0.10)' },
+          '50%':      { boxShadow: '0 0 18px rgba(255,183,3,0.50), 0 0 48px rgba(255,183,3,0.20)' },
         },
-        slideUp: {
-          '0%':   { opacity: '0', transform: 'translateY(20px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
-        },
-      },
-
-      // ─── Box Shadow ────────────────────────────────────────────────────
-      boxShadow: {
-        'violet-glow': '0 0 20px rgba(123,47,190,0.4)',
-        'gold-glow':   '0 0 20px rgba(255,183,3,0.4)',
-        'card-hover':  '0 20px 40px rgba(0,0,0,0.4), 0 0 20px rgba(123,47,190,0.15)',
-      },
-
-      // ─── Backdrop Blur ─────────────────────────────────────────────────
-      backdropBlur: {
-        glass: '16px',
       },
     },
   },

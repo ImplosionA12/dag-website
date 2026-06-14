@@ -1,63 +1,48 @@
 'use client'
 
 import { ReactNode } from 'react'
-import { AnimatePresence, motion, Variants } from 'framer-motion'
+import { motion, Variants } from 'framer-motion'
 import { usePathname } from 'next/navigation'
+import { EASE_OUT, EASE_EXPO } from '@/lib/motion/easing'
 
-// Per-route transition personalities
-const ROUTE_VARIANTS: Record<string, Variants> = {
-  // Home — soft dark fade, returning to base
+// Enter-only choreography — App Router unmounts the old page immediately,
+// so exit animations are unreliable. Each zone gets a distinct entrance.
+const ROUTE_ENTER: Record<string, Variants> = {
   '/': {
-    initial:  { opacity: 0 },
-    animate:  { opacity: 1, transition: { duration: 0.4, ease: 'easeOut' } },
-    exit:     { opacity: 0, transition: { duration: 0.5, ease: 'easeIn' } },
+    initial: { opacity: 0 },
+    animate: { opacity: 1, transition: { duration: 0.5, ease: EASE_OUT } },
   },
-
-  // Events — fast horizontal slash, like a match starting
   '/events': {
-    initial:  { opacity: 0, x: '60px', clipPath: 'inset(0 100% 0 0)' },
-    animate:  { opacity: 1, x: '0px', clipPath: 'inset(0 0% 0 0)', transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] } },
-    exit:     { opacity: 0, x: '-40px', transition: { duration: 0.5, ease: 'easeIn' } },
+    initial: { opacity: 0, x: 48, clipPath: 'inset(0 100% 0 0)' },
+    animate: { opacity: 1, x: 0, clipPath: 'inset(0 0% 0 0)', transition: { duration: 0.45, ease: EASE_OUT } },
   },
-
-  // Leaderboards — vertical scan line top to bottom
   '/leaderboards': {
-    initial:  { opacity: 0, y: '-20px', clipPath: 'inset(0 0 100% 0)' },
-    animate:  { opacity: 1, y: '0px',  clipPath: 'inset(0 0 0% 0)',   transition: { duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] } },
-    exit:     { opacity: 0, y: '20px',  transition: { duration: 0.5, ease: 'easeIn' } },
+    initial: { opacity: 0, clipPath: 'inset(0 0 100% 0)' },
+    animate: { opacity: 1, clipPath: 'inset(0 0 0% 0)', transition: { duration: 0.5, ease: EASE_OUT } },
   },
-
-  // Hall of Fame — gold flood from center outward
   '/hall-of-fame': {
-    initial:  { opacity: 0, scale: 0.97 },
-    animate:  { opacity: 1, scale: 1, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } },
-    exit:     { opacity: 0, scale: 1.02, transition: { duration: 0.5, ease: 'easeIn' } },
+    initial: { opacity: 0, scale: 0.975 },
+    animate: { opacity: 1, scale: 1, transition: { duration: 0.55, ease: EASE_EXPO } },
   },
-
-  // Members — gentle fade with slight scale, warm and human
   '/members': {
-    initial:  { opacity: 0, scale: 0.98 },
-    animate:  { opacity: 1, scale: 1, transition: { duration: 0.4, ease: 'easeOut' } },
-    exit:     { opacity: 0, scale: 0.99, transition: { duration: 0.4, ease: 'easeIn' } },
+    initial: { opacity: 0, scale: 0.985 },
+    animate: { opacity: 1, scale: 1, transition: { duration: 0.45, ease: EASE_OUT } },
   },
-
-  // About — slow dissolve, like opening a book
+  '/polls': {
+    initial: { opacity: 0, y: 28, clipPath: 'inset(100% 0 0 0)' },
+    animate: { opacity: 1, y: 0, clipPath: 'inset(0% 0 0 0)', transition: { duration: 0.5, ease: EASE_EXPO } },
+  },
   '/about': {
-    initial:  { opacity: 0 },
-    animate:  { opacity: 1, transition: { duration: 0.6, ease: 'easeOut' } },
-    exit:     { opacity: 0, transition: { duration: 0.6, ease: 'easeIn' } },
+    initial: { opacity: 0 },
+    animate: { opacity: 1, transition: { duration: 0.65, ease: EASE_OUT } },
   },
 }
 
-const DEFAULT_VARIANTS: Variants = ROUTE_VARIANTS['/']
-
-function getVariants(pathname: string): Variants {
-  // Match exact, then prefix
-  for (const route of Object.keys(ROUTE_VARIANTS)) {
-    if (route !== '/' && pathname.startsWith(route)) return ROUTE_VARIANTS[route]
+function getEnter(pathname: string) {
+  for (const route of Object.keys(ROUTE_ENTER)) {
+    if (route !== '/' && pathname.startsWith(route)) return ROUTE_ENTER[route]
   }
-  if (pathname === '/') return ROUTE_VARIANTS['/']
-  return DEFAULT_VARIANTS
+  return ROUTE_ENTER['/']
 }
 
 interface PageTransitionProps {
@@ -66,20 +51,36 @@ interface PageTransitionProps {
 
 export function PageTransition({ children }: PageTransitionProps) {
   const pathname = usePathname()
-  const variants = getVariants(pathname)
+  const enter = getEnter(pathname)
 
   return (
-    <AnimatePresence mode="wait">
+    <div style={{ position: 'relative' }}>
       <motion.div
         key={pathname}
-        variants={variants}
+        variants={enter}
         initial="initial"
         animate="animate"
-        exit="exit"
         style={{ minHeight: '100vh' }}
       >
         {children}
       </motion.div>
-    </AnimatePresence>
+
+      {/* Shutter — a void panel that wipes open on every route mount */}
+      <motion.div
+        key={`shutter-${pathname}`}
+        className="z-transition"
+        initial={{ scaleY: 1 }}
+        animate={{ scaleY: 0 }}
+        transition={{ duration: 0.55, ease: EASE_EXPO }}
+        style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'var(--void)',
+          transformOrigin: 'top',
+          pointerEvents: 'none',
+        }}
+        aria-hidden="true"
+      />
+    </div>
   )
 }

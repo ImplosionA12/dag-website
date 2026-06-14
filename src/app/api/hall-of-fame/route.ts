@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { csvToObjects } from '@/lib/csv'
 import { HallOfFameResponse, HallOfFameEntry, HoFCategory, GameType } from '@/types'
+import { debug } from '@/lib/debug'
 
 /**
  * Expected Google Sheet columns (exact header names, in any order):
@@ -9,7 +10,12 @@ import { HallOfFameResponse, HallOfFameEntry, HoFCategory, GameType } from '@/ty
  * Rows with an empty player_name are treated as "not yet awarded" and
  * are still included so all 6 categories always appear.
  */
-function rowToEntry(row: Record<string, string>): HallOfFameEntry {
+function rowToEntry(row: Record<string, string>): HallOfFameEntry | null {
+  if (!row.category) {
+    debug.warn('[api/hall-of-fame] Skipping row with missing category:', row)
+    return null
+  }
+
   return {
     category:    row.category as HoFCategory,
     player_name: row.player_name,
@@ -24,19 +30,23 @@ function rowToEntry(row: Record<string, string>): HallOfFameEntry {
 export async function GET() {
   const url = process.env.NEXT_PUBLIC_SHEETS_HOF_URL
 
-  console.log('[api/hall-of-fame] NEXT_PUBLIC_SHEETS_HOF_URL =', url ?? '(not set)')
+  debug.log('[api/hall-of-fame] Sheet URL configured:', !!url)
 
   if (!url) {
-    console.warn('[api/hall-of-fame] No sheet URL configured — returning empty')
+    debug.warn('[api/hall-of-fame] No sheet URL configured — returning empty')
     return NextResponse.json({ hall_of_fame: [] } satisfies HallOfFameResponse)
   }
 
   try {
-    const res = await fetch(url, { next: { revalidate: 60 }, headers: { Accept: 'text/csv' } })
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 8000)
+
+    const res = await fetch(url, { next: { revalidate: 60 }, headers: { Accept: 'text/csv' }, signal: controller.signal })
+    clearTimeout(timeoutId)
     if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`)
 
     const rawCsv = await res.text()
-    console.log('[api/hall-of-fame] Raw CSV (first 300 chars):\n', rawCsv.slice(0, 300))
+    debug.log('[api/hall-of-fame] CSV response length:', rawCsv.length)
 
     const rawRows = csvToObjects(rawCsv)
     const rows = rawRows.map(row =>
@@ -46,13 +56,16 @@ export async function GET() {
     )
 
     const hall_of_fame: HallOfFameEntry[] = rows
-      .filter(r => r.category)
       .map(rowToEntry)
+      .filter((entry): entry is HallOfFameEntry => entry !== null)
 
-    console.log('[api/hall-of-fame] Entries returned:', hall_of_fame.length)
+    debug.log('[api/hall-of-fame] Entries returned:', hall_of_fame.length)
     return NextResponse.json({ hall_of_fame } satisfies HallOfFameResponse)
   } catch (err) {
     console.error('[api/hall-of-fame] Fetch/parse failed:', err)
-    return NextResponse.json({ hall_of_fame: [] } satisfies HallOfFameResponse)
+    return NextResponse.json(
+      { hall_of_fame: [], error: 'Failed to fetch hall of fame' },
+      { status: 503, headers: { 'Cache-Control': 'no-store' } }
+    )
   }
 }

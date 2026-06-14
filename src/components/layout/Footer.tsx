@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { GameBadge } from '@/components/ui/GameBadge'
+import { HudLabel } from '@/components/ui/HudLabel'
 import { DATA_CONFIG } from '@/config/data'
 import { GameType } from '@/types'
 
@@ -11,6 +12,7 @@ const FOOTER_LINKS = [
   { label: 'Leaderboards', href: '/leaderboards' },
   { label: 'Hall of Fame', href: '/hall-of-fame' },
   { label: 'Members',      href: '/members' },
+  { label: 'Polls',        href: '/polls' },
   { label: 'About',        href: '/about' },
 ]
 
@@ -21,64 +23,65 @@ export function Footer() {
 
   return (
     <footer
-      style={{
-        backgroundColor: 'var(--bg-void)',
-        borderTop: '1px solid rgba(157, 78, 221, 0.1)',
-      }}
+      className="relative overflow-hidden"
+      style={{ backgroundColor: 'var(--void)', borderTop: '1px solid var(--line-1)' }}
     >
-      <div className="max-w-7xl mx-auto px-6 md:px-10 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8">
+      {/* Giant clipped wordmark bleeding off the bottom */}
+      <p
+        aria-hidden="true"
+        className="select-none pointer-events-none"
+        style={{
+          position: 'absolute',
+          bottom: '-0.28em',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          fontFamily: 'var(--font-display)',
+          fontWeight: 900,
+          fontSize: 'clamp(8rem, 28vw, 24rem)',
+          lineHeight: 1,
+          letterSpacing: '0.02em',
+          color: 'transparent',
+          WebkitTextStroke: '1px var(--line-1)',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        DAG
+      </p>
 
+      <div className="relative max-w-7xl mx-auto px-gutter pt-16 pb-28 md:pb-40">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8">
           {/* Brand */}
           <div>
             <p
               style={{
-                fontFamily: 'var(--font-rajdhani)',
-                fontSize: 'clamp(2rem, 4vw, 3rem)',
-                fontWeight: 700,
-                color: 'var(--violet-bright)',
-                letterSpacing: '-0.02em',
+                fontFamily: 'var(--font-display)',
+                fontSize: 'clamp(2rem, 4vw, 2.8rem)',
+                fontWeight: 900,
+                color: 'var(--text-hi)',
+                letterSpacing: '0.03em',
                 textTransform: 'uppercase',
                 lineHeight: 1,
               }}
             >
               {DATA_CONFIG.club.name}
             </p>
-            <p
-              className="mt-2 text-label"
-              style={{ color: 'var(--text-muted)', letterSpacing: '0.15em' }}
-            >
+            <p className="mt-3 type-label" style={{ color: 'var(--text-lo)' }}>
               {DATA_CONFIG.club.fullName.toUpperCase()}
             </p>
-            <p
-              className="mt-4 text-body"
-              style={{ color: 'var(--text-muted)', fontSize: '0.85rem', lineHeight: 1.6 }}
-            >
+            <p className="mt-5 type-body" style={{ color: 'var(--text-mid)', fontSize: '0.85rem' }}>
               {DATA_CONFIG.club.tagline}
             </p>
           </div>
 
           {/* Nav */}
           <nav aria-label="Footer navigation">
-            <p className="text-label mb-5" style={{ color: 'var(--text-muted)' }}>Navigate</p>
+            <p className="type-label mb-5" style={{ color: 'var(--text-lo)' }}>
+              {'// NAVIGATE'}
+            </p>
             <ul className="flex flex-col gap-3 list-none" role="list">
               {FOOTER_LINKS.map(({ label, href }) => (
                 <li key={href}>
-                  <Link
-                    href={href}
-                    className="text-label transition-colors duration-150"
-                    style={{
-                      color: 'var(--text-secondary)',
-                      textDecoration: 'none',
-                      letterSpacing: '0.1em',
-                    }}
-                    onMouseEnter={e => {
-                      (e.currentTarget as HTMLAnchorElement).style.color = 'var(--violet-bright)'
-                    }}
-                    onMouseLeave={e => {
-                      (e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-secondary)'
-                    }}
-                  >
+                  <Link href={href} className="footer-link type-label">
                     {label.toUpperCase()}
                   </Link>
                 </li>
@@ -88,7 +91,9 @@ export function Footer() {
 
           {/* Games */}
           <div>
-            <p className="text-label mb-5" style={{ color: 'var(--text-muted)' }}>Games We Play</p>
+            <p className="type-label mb-5" style={{ color: 'var(--text-lo)' }}>
+              {'// GAMES WE PLAY'}
+            </p>
             <div className="flex flex-wrap gap-2">
               {GAMES.map(game => (
                 <GameBadge key={game} game={game} size="md" />
@@ -97,17 +102,17 @@ export function Footer() {
           </div>
         </div>
 
-        {/* Bottom bar */}
+        {/* Telemetry strip */}
         <div
-          className="mt-12 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3"
-          style={{ borderTop: '1px solid rgba(157, 78, 221, 0.1)' }}
+          className="mt-14 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3"
+          style={{ borderTop: '1px solid var(--line-1)' }}
         >
-          <p className="text-label" style={{ color: 'var(--text-muted)', fontSize: '0.65rem' }}>
-            © {year} {DATA_CONFIG.club.fullName.toUpperCase()}. ALL RIGHTS RESERVED.
-          </p>
-          <p className="text-label" style={{ color: 'var(--text-muted)', fontSize: '0.65rem' }}>
-            SEASON {DATA_CONFIG.club.currentSeason} — ACTIVE
-          </p>
+          <HudLabel>
+            {`TRANSMISSION END // © ${year} ${DATA_CONFIG.club.fullName.toUpperCase()}`}
+          </HudLabel>
+          <HudLabel live>
+            {`SZN ${DATA_CONFIG.club.currentSeason.replace('S', '0')} // ACTIVE`}
+          </HudLabel>
         </div>
       </div>
     </footer>

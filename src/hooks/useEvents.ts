@@ -1,16 +1,17 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Event, FetchState } from '@/types'
 
-export function useEvents(): FetchState<Event[]> {
+export function useEvents(): FetchState<Event[]> & { refetch: () => void } {
   const [state, setState] = useState<FetchState<Event[]>>({
     data: null,
     loading: true,
     error: null,
   })
 
-  useEffect(() => {
+  const fetchEvents = useCallback(() => {
+    setState(prev => ({ ...prev, loading: true, error: null }))
     let cancelled = false
 
     fetch('/api/events')
@@ -20,7 +21,8 @@ export function useEvents(): FetchState<Event[]> {
       })
       .then(json => {
         if (!cancelled) {
-          setState({ data: json.events ?? [], loading: false, error: null })
+          const events = Array.isArray(json.events) ? json.events : []
+          setState({ data: events, loading: false, error: null })
         }
       })
       .catch(err => {
@@ -32,5 +34,9 @@ export function useEvents(): FetchState<Event[]> {
     return () => { cancelled = true }
   }, [])
 
-  return state
+  useEffect(() => {
+    return fetchEvents()
+  }, [fetchEvents])
+
+  return { ...state, refetch: fetchEvents }
 }

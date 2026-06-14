@@ -1,16 +1,17 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { LeaderboardEntry, FetchState } from '@/types'
 
-export function useLeaderboards(): FetchState<LeaderboardEntry[]> {
+export function useLeaderboards(): FetchState<LeaderboardEntry[]> & { refetch: () => void } {
   const [state, setState] = useState<FetchState<LeaderboardEntry[]>>({
     data: null,
     loading: true,
     error: null,
   })
 
-  useEffect(() => {
+  const fetchLeaderboards = useCallback(() => {
+    setState(prev => ({ ...prev, loading: true, error: null }))
     let cancelled = false
 
     fetch('/api/leaderboards')
@@ -20,7 +21,8 @@ export function useLeaderboards(): FetchState<LeaderboardEntry[]> {
       })
       .then(json => {
         if (!cancelled) {
-          setState({ data: json.leaderboards ?? [], loading: false, error: null })
+          const leaderboards = Array.isArray(json.leaderboards) ? json.leaderboards : []
+          setState({ data: leaderboards, loading: false, error: null })
         }
       })
       .catch(err => {
@@ -32,5 +34,9 @@ export function useLeaderboards(): FetchState<LeaderboardEntry[]> {
     return () => { cancelled = true }
   }, [])
 
-  return state
+  useEffect(() => {
+    return fetchLeaderboards()
+  }, [fetchLeaderboards])
+
+  return { ...state, refetch: fetchLeaderboards }
 }

@@ -1,37 +1,52 @@
-import type { Metadata } from 'next'
-import { Rajdhani, DM_Sans, Orbitron } from 'next/font/google'
+import type { Metadata, Viewport } from 'next'
+import { Big_Shoulders_Display, Chakra_Petch, Archivo } from 'next/font/google'
 import './globals.css'
 import { SeasonTicker } from '@/components/layout/SeasonTicker'
 import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
 import { PageTransition } from '@/components/layout/PageTransition'
+import { LenisProvider } from '@/components/providers/LenisProvider'
+import { CustomCursor } from '@/components/cinematic/CustomCursor'
+import { FilmGrain } from '@/components/cinematic/FilmGrain'
+import { AmbientGlow } from '@/components/cinematic/AmbientGlow'
+import { ProgressRail } from '@/components/cinematic/ProgressRail'
+import { BootSequence } from '@/components/cinematic/BootSequence'
+import { validateEnv } from '@/lib/env'
+
+validateEnv()
 
 // ─── Fonts ───────────────────────────────────────────────────────────────────
 
-const rajdhani = Rajdhani({
+const bigShoulders = Big_Shoulders_Display({
   subsets: ['latin'],
-  weight: ['700'],
-  variable: '--font-rajdhani',
+  weight: ['700', '800', '900'],
+  variable: '--font-display',
   display: 'swap',
 })
 
-const dmSans = DM_Sans({
+const chakraPetch = Chakra_Petch({
   subsets: ['latin'],
-  weight: ['400', '500'],
-  variable: '--font-dm-sans',
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-hud',
   display: 'swap',
 })
 
-const orbitron = Orbitron({
+const archivo = Archivo({
   subsets: ['latin'],
-  weight: ['600', '700'],
-  variable: '--font-orbitron',
+  weight: ['400', '500', '600'],
+  variable: '--font-body',
   display: 'swap',
 })
 
 // ─── Metadata ────────────────────────────────────────────────────────────────
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://yourdomain.com'
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: '#050408',
+}
 
 export const metadata: Metadata = {
   title: {
@@ -83,47 +98,16 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${rajdhani.variable} ${dmSans.variable} ${orbitron.variable}`}
+      className={`${bigShoulders.variable} ${chakraPetch.variable} ${archivo.variable}`}
     >
       <body>
-        {/* SVG filter definition — must live in body, not head */}
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
-          focusable="false"
-          style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden', pointerEvents: 'none' }}
-        >
-          <defs>
-            <filter id="liquid-distortion" x="0%" y="0%" width="100%" height="100%">
-              <feTurbulence
-                type="fractalNoise"
-                baseFrequency="0.008 0.008"
-                numOctaves="2"
-                seed="2"
-                result="noise"
-              />
-              <feDisplacementMap
-                in="SourceGraphic"
-                in2="noise"
-                scale="4"
-                xChannelSelector="R"
-                yChannelSelector="G"
-              />
-            </filter>
-          </defs>
-        </svg>
-
         {/* Skip to main content — visible on keyboard focus */}
         <a
           href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-0 focus:left-0 focus:z-[9999] focus:px-4 focus:py-2 focus:text-label"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-0 focus:left-0 focus:z-cursor focus:px-4 focus:py-2 type-label"
           style={{
-            background: 'var(--gold-core)',
-            color: 'var(--bg-void)',
-            fontFamily: 'var(--font-rajdhani)',
-            fontWeight: 700,
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase',
+            background: 'var(--gold-400)',
+            color: 'var(--void)',
             textDecoration: 'none',
           }}
         >
@@ -146,21 +130,25 @@ export default function RootLayout({
           }}
         />
 
-        {/* Fixed: season ticker at top */}
+        {/* Fixed chrome: season ticker + navbar */}
         <SeasonTicker />
-
-        {/* Fixed: navbar below ticker */}
         <Navbar />
 
-        {/* Page content with transitions */}
+        {/* Page content with enter transitions */}
         <PageTransition>
-          <main id="main-content">
-            {children}
-          </main>
+          <main id="main-content">{children}</main>
         </PageTransition>
 
-        {/* Footer — rendered outside transition so it doesn't re-animate */}
+        {/* Footer — outside transition so it doesn't re-animate */}
         <Footer />
+
+        {/* Motion + cinematic overlays */}
+        <LenisProvider />
+        <ProgressRail />
+        <AmbientGlow />
+        <CustomCursor />
+        <FilmGrain />
+        <BootSequence />
       </body>
     </html>
   )

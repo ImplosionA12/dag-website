@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
+import { clsx } from '@/lib/utils'
 
 interface StatCounterProps {
   value: number
@@ -10,67 +11,82 @@ interface StatCounterProps {
   className?: string
 }
 
+/**
+ * Telemetry stat — Chakra Petch tabular numerals, rAF count-up on first view.
+ * Under reduced motion (or before IntersectionObserver fires on SSR HTML)
+ * the final value renders immediately.
+ */
 export function StatCounter({ value, label, suffix = '', className = '' }: StatCounterProps) {
-  const [count, setCount] = useState(0)
-  const [hasAnimated, setHasAnimated] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
   const reducedMotion = useReducedMotion()
+  const [count, setCount] = useState(value)
+  const [armed, setArmed] = useState(false)
+  const hasAnimated = useRef(false)
+  const ref = useRef<HTMLDivElement>(null)
 
+  // Arm the animation only on capable clients — SSR markup shows the value.
+  // useReducedMotion starts false and may flip true after mount, so both
+  // branches must settle the count explicitly.
   useEffect(() => {
+    if (hasAnimated.current) return
     if (reducedMotion) {
       setCount(value)
-      return
+      setArmed(false)
+    } else {
+      setCount(0)
+      setArmed(true)
     }
+  }, [reducedMotion, value])
+
+  useEffect(() => {
+    if (!armed || hasAnimated.current || typeof IntersectionObserver === 'undefined') return
+
+    const node = ref.current
+    if (!node) return
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && !hasAnimated) {
-          setHasAnimated(true)
-          animateCount(0, value, 2000, setCount)
+        if (entry.isIntersecting && !hasAnimated.current) {
+          hasAnimated.current = true
+          animateCount(value, 1800, setCount)
           observer.disconnect()
         }
       },
       { threshold: 0.5 }
     )
 
-    if (ref.current) observer.observe(ref.current)
+    observer.observe(node)
     return () => observer.disconnect()
-  }, [value, reducedMotion, hasAnimated])
+  }, [armed, value])
 
   return (
-    <div ref={ref} className={`flex flex-col items-center gap-2 ${className}`}>
+    <div ref={ref} className={clsx('flex flex-col items-center gap-3', className)}>
       <span
-        className="text-gold-core text-data-bold"
         style={{
-          fontSize: 'clamp(2.5rem, 6vw, 4.5rem)',
-          fontFamily: 'var(--font-orbitron)',
+          fontFamily: 'var(--font-hud), monospace',
           fontWeight: 700,
+          fontVariantNumeric: 'tabular-nums',
+          fontSize: 'clamp(2.6rem, 6vw, 4.6rem)',
           lineHeight: 1,
+          color: 'var(--text-hi)',
         }}
       >
-        {count}{suffix}
+        {count}
+        {suffix}
       </span>
-      <span className="text-label" style={{ color: 'var(--text-muted)' }}>
+      <span className="type-label" style={{ color: 'var(--text-lo)' }}>
         {label}
       </span>
     </div>
   )
 }
 
-function animateCount(
-  from: number,
-  to: number,
-  duration: number,
-  setter: (v: number) => void
-) {
-  const startTime = performance.now()
+function animateCount(to: number, duration: number, setter: (v: number) => void) {
+  const start = performance.now()
 
   function update(now: number) {
-    const elapsed = now - startTime
-    const progress = Math.min(elapsed / duration, 1)
-    // Ease out cubic
+    const progress = Math.min((now - start) / duration, 1)
     const eased = 1 - Math.pow(1 - progress, 3)
-    setter(Math.round(from + (to - from) * eased))
+    setter(Math.round(to * eased))
     if (progress < 1) requestAnimationFrame(update)
   }
 

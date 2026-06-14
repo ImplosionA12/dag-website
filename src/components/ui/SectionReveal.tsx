@@ -2,13 +2,14 @@
 
 import { motion } from 'framer-motion'
 import { ReactNode, CSSProperties } from 'react'
+import { EASE_OUT, DUR } from '@/lib/motion/easing'
 
 interface SectionRevealProps {
   children: ReactNode
   delay?: number
   className?: string
   style?: CSSProperties
-  /** y offset to start from. Default 36. */
+  /** y offset to start from. Default 32. */
   distance?: number
 }
 
@@ -22,14 +23,14 @@ export function SectionReveal({
   delay = 0,
   className = '',
   style,
-  distance = 36,
+  distance = 32,
 }: SectionRevealProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: distance }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-80px' }}
-      transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] as const, delay }}
+      transition={{ duration: DUR.base, ease: EASE_OUT, delay }}
       className={className}
       style={style}
     >

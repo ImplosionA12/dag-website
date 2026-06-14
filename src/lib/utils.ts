@@ -7,10 +7,10 @@ import { Event, GameType } from '@/types'
  * Returns null if the date is in the past.
  */
 export function daysRemaining(dateString: string): number | null {
-  const target = new Date(dateString)
+  // Parse YYYY-MM-DD directly to avoid UTC vs local timezone shift
+  const [y, m, d] = dateString.split('-').map(Number)
+  const targetDay = new Date(y, m - 1, d)
   const now = new Date()
-  // Compare date-only (strip time)
-  const targetDay = new Date(target.getFullYear(), target.getMonth(), target.getDate())
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
   const diff = Math.ceil((targetDay.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
   return diff >= 0 ? diff : null

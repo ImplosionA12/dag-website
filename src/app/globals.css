@@ -2,54 +2,74 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ─── CSS Custom Properties ─────────────────────────────────────────────────── */
+/* ════════════════════════════════════════════════════════════════════════════
+   DAG — "AAA TITLE SCREEN × TOURNAMENT BROADCAST"
+   Design tokens. Everything visual derives from these variables.
+   ═══════════════════════════════════════════════════════════════════════════ */
 
 :root {
-  /* Backgrounds */
-  --bg-void:        #06050A;
-  --bg-primary:     #0A0812;
-  --bg-secondary:   #100E1A;
-  --bg-tertiary:    #171422;
+  /* ── Surfaces — deep void, violet is light, not paint ─────────────────── */
+  --void:      #050408;
+  --surface-1: #0A0810;
+  --surface-2: #110D18;
+  --surface-3: #181222;
 
-  /* Violet */
-  --violet-deep:    #4A1A7A;
-  --violet-core:    #7B2FBE;
-  --violet-bright:  #9D4EDD;
-  --violet-glow:    rgba(123, 47, 190, 0.4);
+  /* ── Violet — ambient atmosphere only ─────────────────────────────────── */
+  --violet-700: #4A1A7A;
+  --violet-500: #7B2FBE;
+  --violet-300: #9D4EDD;
+  --violet-glow:  rgba(123, 47, 190, 0.35);
+  --violet-faint: rgba(157, 78, 221, 0.07);
 
-  /* Gold */
-  --gold-deep:      #8B6000;
-  --gold-core:      #FFB703;
-  --gold-bright:    #FFD60A;
-  --gold-glow:      rgba(255, 183, 3, 0.4);
+  /* ── Gold — VICTORY ONLY. Consumed exclusively by: primary CTAs,
+        rank #1 treatments, and the Hall of Fame zone. Nothing else. ──────── */
+  --gold-600: #8B6000;
+  --gold-400: #FFB703;
+  --gold-200: #FFD60A;
+  --gold-glow: rgba(255, 183, 3, 0.35);
 
-  /* Game colors */
-  --ff-color:       #FF4500;
-  --bgmi-color:     #4FC3F7;
-  --valorant-color: #FF4655;
-  --anime-color:    #E040FB;
+  /* ── Game accents — must mirror GAME_COLORS in src/lib/utils.ts ───────── */
+  --game-ff:       #FF4500;
+  --game-bgmi:     #4FC3F7;
+  --game-valorant: #FF4655;
+  --game-anime:    #E040FB;
+  --game-other:    #9B8FA8;
 
-  /* Text */
-  --text-primary:   #F0ECF7;
-  --text-secondary: #9B8FA8;
-  --text-muted:     #4A4358;
+  /* ── Ranks ─────────────────────────────────────────────────────────────── */
+  --rank-gold:   #FFB703;
+  --rank-silver: #C0C0C0;
+  --rank-bronze: #CD7F32;
 
-  /* Glass */
-  --glass-bg:       rgba(123, 47, 190, 0.06);
-  --glass-border:   rgba(157, 78, 221, 0.18);
-  --glass-blur:     16px;
+  /* ── HUD lines — broadcast framing is drawn with these ────────────────── */
+  --line-1:  rgba(242, 238, 248, 0.08);
+  --line-2:  rgba(242, 238, 248, 0.16);
+  --bracket: rgba(242, 238, 248, 0.38);
 
-  /* Ranks */
-  --rank-gold:      #FFB703;
-  --rank-silver:    #C0C0C0;
-  --rank-bronze:    #CD7F32;
+  /* ── Text ──────────────────────────────────────────────────────────────── */
+  --text-hi:  #F2EEF8;
+  --text-mid: #9A92A8;
+  --text-lo:  #5F5A6B;
 
-  /* Layout */
-  --ticker-height:  36px;
-  --navbar-height:  64px;
+  /* ── Zone theming — pages override via [data-zone] ────────────────────── */
+  --zone-accent: var(--violet-300);
+  --zone-glow:   rgba(157, 78, 221, 0.30);
+  --zone-faint:  rgba(157, 78, 221, 0.07);
+
+  /* ── Layout ────────────────────────────────────────────────────────────── */
+  --ticker-h: 36px;
+  --nav-h:    64px;
+  --page-top: calc(var(--ticker-h) + var(--nav-h));
+  --gutter:   clamp(1.25rem, 4vw, 4rem);
 }
 
-/* ─── Base Reset ────────────────────────────────────────────────────────────── */
+/* The one gold page. Gold accent flows through every zone-aware component. */
+[data-zone='hof'] {
+  --zone-accent: var(--gold-400);
+  --zone-glow:   rgba(255, 183, 3, 0.28);
+  --zone-faint:  rgba(255, 183, 3, 0.06);
+}
+
+/* ─── Base Reset ────────────────────────────────────────────────────────── */
 
 *, *::before, *::after {
   box-sizing: border-box;
@@ -58,104 +78,354 @@
 }
 
 html {
-  scroll-behavior: smooth;
+  /* No scroll-behavior: smooth — Lenis owns scrolling on capable devices */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-  font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
-  line-height: 1.7;
+  background-color: var(--void);
+  color: var(--text-hi);
+  font-family: var(--font-body), 'Archivo', sans-serif;
+  line-height: 1.65;
   overflow-x: hidden;
 }
 
-/* ─── Typography Scale ──────────────────────────────────────────────────────── */
+/* ─── Type Scale ────────────────────────────────────────────────────────────
+   Display = Big Shoulders (ultra-condensed). HUD = Chakra Petch (telemetry).
+   Body = Archivo. Classes bundle family + tracking + case intentionally.   */
 
-.text-hero {
-  font-size: clamp(4rem, 12vw, 10rem);
-  font-family: var(--font-rajdhani), 'Rajdhani', sans-serif;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+.type-display-xl {
+  font-family: var(--font-display), sans-serif;
+  font-weight: 800;
+  font-size: clamp(5rem, 17vw, 16rem);
+  line-height: 0.82;
+  letter-spacing: 0.01em;
   text-transform: uppercase;
-  line-height: 0.95;
 }
 
-.text-page-heading {
-  font-size: clamp(2.5rem, 6vw, 5rem);
-  font-family: var(--font-rajdhani), 'Rajdhani', sans-serif;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+.type-display {
+  font-family: var(--font-display), sans-serif;
+  font-weight: 800;
+  font-size: clamp(3rem, 8vw, 7rem);
+  line-height: 0.88;
+  letter-spacing: 0.01em;
   text-transform: uppercase;
+}
+
+.type-h2 {
+  font-family: var(--font-display), sans-serif;
+  font-weight: 800;
+  font-size: clamp(2.2rem, 5vw, 4rem);
+  line-height: 0.92;
+  letter-spacing: 0.015em;
+  text-transform: uppercase;
+}
+
+.type-h3 {
+  font-family: var(--font-display), sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.4rem, 2.6vw, 2rem);
   line-height: 1;
-}
-
-.text-section-heading {
-  font-size: clamp(1.8rem, 4vw, 3rem);
-  font-family: var(--font-rajdhani), 'Rajdhani', sans-serif;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
-  line-height: 1.1;
 }
 
-.text-card-title {
-  font-size: clamp(1.2rem, 2.5vw, 1.6rem);
-  font-family: var(--font-rajdhani), 'Rajdhani', sans-serif;
-  font-weight: 700;
+.type-hud {
+  font-family: var(--font-hud), monospace;
+  font-weight: 500;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+}
+
+.type-hud-lg {
+  font-family: var(--font-hud), monospace;
+  font-weight: 600;
+  font-size: clamp(1.4rem, 3vw, 2.2rem);
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.type-label {
+  font-family: var(--font-hud), monospace;
+  font-weight: 500;
+  font-size: 0.65rem;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
-  line-height: 1.2;
 }
 
-.text-body {
-  font-size: clamp(0.9rem, 1.5vw, 1.05rem);
-  font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+.type-body {
+  font-family: var(--font-body), sans-serif;
   font-weight: 400;
+  font-size: clamp(0.9rem, 1.4vw, 1.02rem);
   line-height: 1.7;
 }
 
-.text-label {
-  font-size: 0.7rem;
-  font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
-  font-weight: 500;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
+/* ─── Line reveal clip ──────────────────────────────────────────────────────
+   Wrapper for per-line rise reveals. The tight display line-height (0.82)
+   makes the line box shorter than the glyphs, so a bare overflow:hidden
+   slices the cap tops — padding extends the clip region, negative margin
+   gives the space back so lines still stack tight.                         */
+
+.line-reveal {
+  display: block;
+  overflow: hidden;
+  padding-top: 0.16em;
+  margin-top: -0.16em;
+  padding-bottom: 0.06em;
+  margin-bottom: -0.06em;
 }
 
-.text-data {
-  font-family: var(--font-orbitron), 'Orbitron', monospace;
-  font-weight: 600;
+/* ─── HUD Utilities ─────────────────────────────────────────────────────── */
+
+/* Hairline rule that fades at both ends */
+.hud-rule {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--line-2) 12%, var(--line-2) 88%, transparent);
 }
 
-.text-data-bold {
-  font-family: var(--font-orbitron), 'Orbitron', monospace;
+/* Diagonal slash clip — broadcast lower-third shape */
+.diag {
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 100%, 14px 100%);
+}
+
+.diag-r {
+  clip-path: polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%);
+}
+
+/* Oversized type that bleeds off-canvas */
+.bleed-x {
+  margin-left: calc(var(--gutter) * -0.6);
+  margin-right: calc(var(--gutter) * -0.6);
+}
+
+/* Scanlines layer */
+.scanlines {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(5, 4, 8, 0.14) 2px,
+    rgba(5, 4, 8, 0.14) 4px
+  );
+  pointer-events: none;
+}
+
+/* Film-grain texture (animated by FilmGrain component) */
+.grain-texture {
+  content: '';
+  position: absolute;
+  inset: -200%;
+  width: 400%;
+  height: 400%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+  background-size: 256px 256px;
+}
+
+@keyframes grain {
+  0%, 100% { transform: translate(0, 0); }
+  10%      { transform: translate(-5%, -10%); }
+  20%      { transform: translate(-15%, 5%); }
+  30%      { transform: translate(7%, -25%); }
+  40%      { transform: translate(-5%, 25%); }
+  50%      { transform: translate(-15%, 10%); }
+  60%      { transform: translate(15%, 0%); }
+  70%      { transform: translate(0%, 15%); }
+  80%      { transform: translate(3%, 25%); }
+  90%      { transform: translate(-10%, 10%); }
+}
+
+.animate-grain {
+  animation: grain 0.8s steps(1) infinite;
+}
+
+/* ─── Buttons ───────────────────────────────────────────────────────────── */
+
+/* Gold victory CTA — fill lives on the inner .diag span */
+.cta-btn .cta-fill {
+  background: var(--gold-400);
+  color: var(--void);
+  font-family: var(--font-hud), monospace;
   font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  transition: background 0.2s ease;
 }
 
-/* ─── Liquid Glass ──────────────────────────────────────────────────────────── */
-
-.liquid-glass {
-  background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  border: 1px solid var(--glass-border);
+.cta-btn:hover .cta-fill,
+.cta-btn:focus-visible .cta-fill {
+  background: var(--gold-200);
 }
 
-/* ─── Skeleton Loading ──────────────────────────────────────────────────────── */
+.cta-btn:hover {
+  transform: translateY(-2px);
+}
+
+.cta-btn:active {
+  transform: translateY(0);
+}
+
+/* Secondary ghost button — clip on inner fill keeps the focus ring visible */
+.ghost-btn {
+  color: var(--text-hi);
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-family: var(--font-hud), monospace;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.ghost-btn .ghost-fill {
+  border: 1px solid var(--line-2);
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.ghost-btn:hover,
+.ghost-btn:focus-visible {
+  color: var(--zone-accent);
+}
+
+.ghost-btn:hover .ghost-fill,
+.ghost-btn:focus-visible .ghost-fill {
+  border-color: var(--zone-accent);
+  background: var(--zone-faint);
+}
+
+/* ─── Navbar scroll-driven backdrop (zero re-renders) ───────────────────── */
+
+.nav-scrollable {
+  --_blur: calc(var(--nav-scrolled, 0) * 14px);
+  background: rgb(5 4 8 / calc(var(--nav-scrolled, 0) * 0.88));
+  backdrop-filter: blur(var(--_blur));
+  -webkit-backdrop-filter: blur(var(--_blur));
+  border-bottom: 1px solid rgb(242 238 248 / calc(var(--nav-scrolled, 0) * 0.08));
+}
+
+/* ─── Nav links ─────────────────────────────────────────────────────────── */
+
+.nav-link {
+  position: relative;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  padding-bottom: 5px;
+  color: var(--text-mid);
+  text-decoration: none;
+  transition: color 0.18s ease;
+}
+
+.nav-link .nav-link-index {
+  font-size: 0.55rem;
+  color: var(--text-lo);
+  letter-spacing: 0.1em;
+  transition: color 0.18s ease;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  width: 100%;
+  background: var(--zone-accent);
+  transform: scaleX(0) skewX(-30deg);
+  transform-origin: left;
+  transition: transform 0.22s ease;
+}
+
+.nav-link:hover,
+.nav-link:focus-visible {
+  color: var(--text-hi);
+}
+
+.nav-link:hover .nav-link-index {
+  color: var(--zone-accent);
+}
+
+.nav-link-active {
+  color: var(--text-hi);
+}
+
+.nav-link-active .nav-link-index {
+  color: var(--zone-accent);
+}
+
+.nav-link-active::after,
+.nav-link:hover::after {
+  transform: scaleX(1) skewX(-30deg);
+}
+
+.nav-logo span:nth-child(2) {
+  transition: color 0.18s ease, text-shadow 0.18s ease;
+}
+
+.nav-logo:hover span:nth-child(2),
+.nav-logo:focus-visible span:nth-child(2) {
+  color: var(--zone-accent);
+  text-shadow: 2px 0 rgba(255, 70, 85, 0.55), -2px 0 rgba(79, 195, 247, 0.55);
+}
+
+.footer-link {
+  color: var(--text-mid);
+  text-decoration: none;
+  transition: color 0.15s ease, padding-left 0.15s ease;
+}
+
+.footer-link:hover,
+.footer-link:focus-visible {
+  color: var(--zone-accent);
+  padding-left: 6px;
+}
+
+/* ─── Card & row micro-interactions ─────────────────────────────────────── */
+
+.mission-card,
+.trophy-card,
+.operator-card {
+  background: var(--surface-1);
+}
+
+@media (pointer: fine) {
+  .mission-card:hover,
+  .trophy-card:hover,
+  .operator-card:hover {
+    transform: translateY(-4px);
+    background: var(--surface-2);
+  }
+}
+
+.standings-row,
+.debrief-row {
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.standings-row:hover,
+.debrief-row:hover {
+  background: var(--zone-faint);
+  transform: translateX(4px);
+}
+
+/* ─── Skeleton Loading ──────────────────────────────────────────────────── */
 
 .skeleton {
   background: linear-gradient(
     90deg,
-    var(--bg-secondary) 0%,
-    var(--bg-tertiary) 40%,
-    rgba(123, 47, 190, 0.12) 50%,
-    var(--bg-tertiary) 60%,
-    var(--bg-secondary) 100%
+    var(--surface-1) 0%,
+    var(--surface-2) 40%,
+    var(--surface-3) 50%,
+    var(--surface-2) 60%,
+    var(--surface-1) 100%
   );
   background-size: 200% 100%;
   animation: shimmer 1.8s ease-in-out infinite;
-  border-radius: 8px;
 }
 
 @keyframes shimmer {
@@ -163,7 +433,7 @@ body {
   100% { background-position:  200% 0; }
 }
 
-/* ─── Marquee ───────────────────────────────────────────────────────────────── */
+/* ─── Marquee ───────────────────────────────────────────────────────────── */
 
 @keyframes marquee {
   0%   { transform: translateX(0); }
@@ -172,92 +442,79 @@ body {
 
 .animate-marquee {
   display: flex;
-  animation: marquee 30s linear infinite;
+  animation: marquee 32s linear infinite;
   white-space: nowrap;
   will-change: transform;
 }
 
 @media (max-width: 767px) {
-  .animate-marquee {
-    animation-duration: 50s;
-  }
+  .animate-marquee { animation-duration: 50s; }
 }
 
-/* ─── Neon Pulse (single CTA only) ─────────────────────────────────────────── */
+/* ─── HUD flicker (LIVE dots, status blips) ─────────────────────────────── */
 
-@keyframes neonPulse {
-  0%, 100% { box-shadow: 0 0 8px rgba(255,183,3,0.4), 0 0 20px rgba(255,183,3,0.2); }
-  50%      { box-shadow: 0 0 16px rgba(255,183,3,0.8), 0 0 40px rgba(255,183,3,0.4), 0 0 60px rgba(255,183,3,0.2); }
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.25; }
 }
 
-.animate-neon-pulse {
-  animation: neonPulse 2.5s ease-in-out infinite;
+.animate-flicker {
+  animation: flicker 1.6s steps(2) infinite;
 }
 
-/* ─── Scrollbar ─────────────────────────────────────────────────────────────── */
+/* ─── Gold pulse — single primary CTA / rank #1 only ────────────────────── */
 
-::-webkit-scrollbar       { width: 6px; }
-::-webkit-scrollbar-track { background: var(--bg-void); }
-::-webkit-scrollbar-thumb { background: var(--violet-deep); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--violet-core); }
+@keyframes pulseGold {
+  0%, 100% { box-shadow: 0 0 10px rgba(255, 183, 3, 0.25), 0 0 28px rgba(255, 183, 3, 0.10); }
+  50%      { box-shadow: 0 0 18px rgba(255, 183, 3, 0.50), 0 0 48px rgba(255, 183, 3, 0.20); }
+}
 
-/* ─── Selection ─────────────────────────────────────────────────────────────── */
+.animate-pulse-gold {
+  animation: pulseGold 2.8s ease-in-out infinite;
+}
+
+/* ─── Custom Cursor (desktop fine-pointer only) ─────────────────────────── */
+
+@media (pointer: fine) {
+  html, body { cursor: none; }
+  a, button, [role='button'], input, textarea, select { cursor: none; }
+}
+
+/* ─── Scrollbar ─────────────────────────────────────────────────────────── */
+
+::-webkit-scrollbar       { width: 5px; }
+::-webkit-scrollbar-track { background: var(--void); }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--violet-700), var(--violet-500));
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--violet-300);
+}
+
+/* ─── Selection ─────────────────────────────────────────────────────────── */
 
 ::selection {
-  background: rgba(123, 47, 190, 0.4);
-  color: var(--text-primary);
+  background: rgba(123, 47, 190, 0.45);
+  color: var(--text-hi);
 }
 
-/* ─── Focus ─────────────────────────────────────────────────────────────────── */
+/* ─── Focus ─────────────────────────────────────────────────────────────── */
 
 :focus-visible {
-  outline: 2px solid var(--violet-bright);
-  outline-offset: 2px;
+  outline: 2px solid var(--zone-accent);
+  outline-offset: 3px;
 }
 
-/* ─── Gradient Text Utilities ───────────────────────────────────────────────── */
+/* ─── Small Screen Overrides (<360px) ───────────────────────────────────── */
 
-.text-gold-gradient {
-  background: linear-gradient(135deg, var(--gold-core) 0%, var(--gold-bright) 50%, var(--gold-core) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+@media (max-width: 359px) {
+  .type-display-xl { font-size: 3.4rem; }
+  .type-display    { font-size: 2.4rem; }
+  .type-h2         { font-size: 1.7rem; }
 }
 
-.text-violet-gradient {
-  background: linear-gradient(135deg, var(--violet-core) 0%, var(--violet-bright) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* ─── Neon Borders ──────────────────────────────────────────────────────────── */
-
-.neon-border-violet {
-  border: 1px solid var(--violet-bright);
-  box-shadow: 0 0 12px rgba(157, 78, 221, 0.3), inset 0 0 12px rgba(157, 78, 221, 0.05);
-}
-
-.neon-border-gold {
-  border: 1px solid var(--gold-core);
-  box-shadow: 0 0 12px rgba(255, 183, 3, 0.3), inset 0 0 12px rgba(255, 183, 3, 0.05);
-}
-
-/* ─── Page Layout ───────────────────────────────────────────────────────────── */
-
-.page-content {
-  padding-top: calc(var(--ticker-height) + var(--navbar-height));
-  min-height: 100vh;
-}
-
-/* ─── Scroll Bounce (hero indicator) ───────────────────────────────────────── */
-
-@keyframes scrollBounce {
-  0%, 100% { transform: scaleY(0.5); transform-origin: top; opacity: 0.3; }
-  50%       { transform: scaleY(1);   transform-origin: top; opacity: 1;   }
-}
-
-/* ─── Reduced Motion ────────────────────────────────────────────────────────── */
+/* ─── Reduced Motion — global kill-switch ───────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
