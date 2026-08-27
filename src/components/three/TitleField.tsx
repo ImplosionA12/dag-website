@@ -21,6 +21,10 @@ const DUST_SPREAD = 11
 const SCATTER_SPREAD = 26
 const GOLD_RATIO = 0.035
 const POINTER_LERP = 0.05
+/** The local bloom tracks the cursor far more tightly than the field parallax. */
+const POINTER_LERP_FAST = 0.18
+const CAMERA_Z = 7
+const CAMERA_FOV = 60
 
 const VERTEX_SHADER = /* glsl */ `
   attribute vec3 aStart;
@@ -33,9 +37,18 @@ const VERTEX_SHADER = /* glsl */ `
   uniform float uAssembly;
   uniform vec2 uPointer;
   uniform float uScroll;
+  uniform vec2 uPointerNdc;
+  uniform vec2 uViewHalf;
+  uniform float uCamZ;
+  uniform float uBloom;
 
   varying float vGold;
   varying float vFade;
+  varying float vGlow;
+
+  // Radius (view units) and outward shove of the cursor disturbance.
+  const float POINTER_RADIUS = 2.1;
+  const float POINTER_PUSH = 0.5;
 
   void main() {
     vGold = aGold;
@@ -58,10 +71,20 @@ const VERTEX_SHADER = /* glsl */ `
     pos.y += uScroll * 1.8;
 
     vec4 mv = modelViewMatrix * vec4(pos, 1.0);
+
+    // Local cursor bloom. Worked in view space and rescaled by this particle's
+    // own depth, so the disturbance sits under the cursor on screen no matter
+    // how far the field has rotated or how deep the particle sits.
+    vec2 pointerAt = uPointerNdc * uViewHalf * (-mv.z / uCamZ);
+    vec2 away = mv.xy - pointerAt;
+    float infl = smoothstep(POINTER_RADIUS, 0.0, length(away)) * uBloom;
+    mv.xy += normalize(away + vec2(1e-4)) * infl * POINTER_PUSH;
+    vGlow = infl;
+
     gl_Position = projectionMatrix * mv;
     // Small, crisp sprites — at camera z≈7 this lands around 1.5–5px.
     // Anything larger turns the additive field into an overexposed blob.
-    gl_PointSize = aSize * (1.0 + aGold * 0.7) * (22.0 / -mv.z);
+    gl_PointSize = aSize * (1.0 + aGold * 0.7 + infl * 1.4) * (22.0 / -mv.z);
 
     vFade = (0.25 + 0.45 * aSeed.z) * (1.0 - uScroll * 0.85);
   }
@@ -70,6 +93,7 @@ const VERTEX_SHADER = /* glsl */ `
 const FRAGMENT_SHADER = /* glsl */ `
   varying float vGold;
   varying float vFade;
+  varying float vGlow;
 
   void main() {
     float d = length(gl_PointCoord - 0.5);
@@ -79,9 +103,13 @@ const FRAGMENT_SHADER = /* glsl */ `
     vec3 deep   = vec3(0.290, 0.102, 0.478);
     vec3 violet = vec3(0.616, 0.306, 0.867);
     vec3 gold   = vec3(1.000, 0.718, 0.012);
+    // The bloom brightens toward light violet, never gold — gold is victory only.
+    vec3 charge = vec3(0.855, 0.663, 1.000);
 
     vec3 col = mix(deep, violet, vFade);
     col = mix(col, gold, vGold);
+    col = mix(col, charge, vGlow * 0.85);
+    alpha = min(alpha * (1.0 + vGlow * 1.8), 1.0);
     gl_FragColor = vec4(col, alpha);
   }
 `
@@ -157,8 +185,8 @@ export default function TitleField() {
       mount.appendChild(renderer.domElement)
 
       const scene = new THREE.Scene()
-      const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 100)
-      camera.position.z = 7
+      const camera = new THREE.PerspectiveCamera(CAMERA_FOV, 1, 0.1, 100)
+      camera.position.z = CAMERA_Z
 
       const { start, target, gold, size, seed } = buildAttributes()
 
@@ -176,6 +204,10 @@ export default function TitleField() {
         uAssembly: { value: 0 },
         uPointer: { value: new THREE.Vector2(0, 0) },
         uScroll: { value: 0 },
+        uPointerNdc: { value: new THREE.Vector2(0, 0) },
+        uViewHalf: { value: new THREE.Vector2(1, 1) },
+        uCamZ: { value: CAMERA_Z },
+        uBloom: { value: 0 },
       }
 
       material = new THREE.ShaderMaterial({
@@ -193,6 +225,14 @@ export default function TitleField() {
       const startTime = performance.now()
       const pointer = { x: 0, y: 0 }
       const smooth = { x: 0, y: 0 }
+      const snap = { x: 0, y: 0 }
+      // Raw client coords. The bloom is a *local* effect, so it has to be
+      // normalized against the canvas rect rather than the viewport — the
+      // mount only covers the hero, and it slides as the page scrolls.
+      const client = { x: 0, y: 0 }
+      // Ramps 0 → 1 on the first mousemove so the bloom doesn't sit parked in
+      // the middle of the ring before the pointer has been anywhere.
+      let bloomTarget = 0
 
       const setSize = () => {
         const w = mount.clientWidth
@@ -200,6 +240,10 @@ export default function TitleField() {
         camera.aspect = w / h
         camera.updateProjectionMatrix()
         renderer.setSize(w, h)
+        // World half-extent of the frustum at the camera distance, so the
+        // shader can place the pointer in view space.
+        const halfH = Math.tan((camera.fov * Math.PI) / 360) * CAMERA_Z
+        uniforms.uViewHalf.value.set(halfH * camera.aspect, halfH)
       }
       setSize()
 
@@ -210,9 +254,20 @@ export default function TitleField() {
         smooth.x += (pointer.x - smooth.x) * POINTER_LERP
         smooth.y += (pointer.y - smooth.y) * POINTER_LERP
 
+        // Re-read once per frame so the bloom stays under the cursor while the
+        // hero scrolls. One rect read on one element is cheaper than the jank
+        // of measuring on every mousemove.
+        const rect = mount.getBoundingClientRect()
+        const localX = ((client.x - rect.left) / rect.width - 0.5) * 2
+        const localY = -((client.y - rect.top) / rect.height - 0.5) * 2
+        snap.x += (localX - snap.x) * POINTER_LERP_FAST
+        snap.y += (localY - snap.y) * POINTER_LERP_FAST
+
         uniforms.uTime.value = elapsed
         uniforms.uAssembly.value = Math.min(elapsed / 2.6, 1)
         uniforms.uPointer.value.set(smooth.x, smooth.y)
+        uniforms.uPointerNdc.value.set(snap.x, snap.y)
+        uniforms.uBloom.value += (bloomTarget - uniforms.uBloom.value) * 0.08
         uniforms.uScroll.value = Math.min(window.scrollY / window.innerHeight, 1)
 
         points.rotation.y = elapsed * 0.05 + smooth.x * 0.25
@@ -234,6 +289,9 @@ export default function TitleField() {
       const onMouseMove = (e: MouseEvent) => {
         pointer.x = (e.clientX / window.innerWidth - 0.5) * 2
         pointer.y = -(e.clientY / window.innerHeight - 0.5) * 2
+        client.x = e.clientX
+        client.y = e.clientY
+        bloomTarget = 1
       }
       const onResize = () => setSize()
       const onVisibility = () => {

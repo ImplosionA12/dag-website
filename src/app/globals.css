@@ -153,6 +153,7 @@ body {
   font-size: 0.65rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
 }
 
 .type-body {

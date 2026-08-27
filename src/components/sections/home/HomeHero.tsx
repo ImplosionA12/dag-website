@@ -83,9 +83,9 @@ export function HomeHero() {
         <span className="absolute top-0 left-0 type-label" style={{ color: 'var(--text-lo)' }}>
           SZN 01 // ACTIVE
         </span>
-        <span className="absolute top-0 right-0 type-label" style={{ color: 'var(--text-lo)' }}>
-          SIGNAL // STABLE
-        </span>
+        <HudLabel track color="var(--text-lo)" className="absolute top-0 right-0">
+          SIGNAL
+        </HudLabel>
         <span className="absolute bottom-0 left-0 type-label" style={{ color: 'var(--text-lo)' }}>
           {DATA_CONFIG.club.fullName.toUpperCase()}
         </span>
