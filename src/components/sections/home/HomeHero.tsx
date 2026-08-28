@@ -10,6 +10,7 @@ import { GhostButton } from '@/components/ui/GhostButton'
 import { HudLabel } from '@/components/ui/HudLabel'
 import { EASE_EXPO, DUR } from '@/lib/motion/easing'
 import { DATA_CONFIG } from '@/config/data'
+import { seasonTag } from '@/lib/utils'
 
 const TitleField = dynamic(() => import('@/components/three/TitleField'), {
   ssr: false,
@@ -81,7 +82,7 @@ export function HomeHero() {
         style={{ inset: 'calc(var(--page-top) + 12px) 24px 24px' }}
       >
         <span className="absolute top-0 left-0 type-label" style={{ color: 'var(--text-lo)' }}>
-          SZN 01 // ACTIVE
+          {`SZN ${seasonTag()} // ACTIVE`}
         </span>
         <HudLabel track color="var(--text-lo)" className="absolute top-0 right-0">
           SIGNAL

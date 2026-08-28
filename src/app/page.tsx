@@ -10,7 +10,7 @@ import { AmbientField } from '@/components/cinematic/AmbientField'
 export const metadata: Metadata = {
   title: 'DAG — Enter the Arena',
   description:
-    'DAG — Drushya Animations & Gaming. Where Gaming Meets Animation. Season 1 is active.',
+    'DAG — Drushya Animations & Gaming. Where Gaming Meets Animation. Season 2 is active.',
 }
 
 export default function HomePage() {

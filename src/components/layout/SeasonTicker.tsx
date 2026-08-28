@@ -41,7 +41,7 @@ export function SeasonTicker() {
     } else {
       tickerText = [
         'DAG — DRUSHYA ANIMATIONS & GAMING',
-        'SEASON 1 — COMING SOON',
+        `SEASON ${DATA_CONFIG.club.currentSeason.replace('S', '')} — COMING SOON`,
         'WHERE GAMING MEETS ANIMATION',
       ].join('  //  ')
     }

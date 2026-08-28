@@ -1,4 +1,5 @@
 import { ImageResponse } from 'next/og'
+import { seasonTag } from '@/lib/utils'
 
 export const runtime = 'edge'
 
@@ -39,7 +40,7 @@ export async function GET() {
 
         {/* Telemetry labels */}
         <div style={{ position: 'absolute', top: 48, left: 96, fontSize: 18, letterSpacing: 6, color: '#9A92A8', display: 'flex' }}>
-          SZN 01 // LIVE
+          {`SZN ${seasonTag()} // LIVE`}
         </div>
         <div style={{ position: 'absolute', bottom: 48, right: 96, fontSize: 18, letterSpacing: 6, color: '#9A92A8', display: 'flex' }}>
           ENTER THE ARENA

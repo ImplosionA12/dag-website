@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { HudLabel } from './HudLabel'
 import { ScrambleText } from '@/components/cinematic/ScrambleText'
 import { EASE_EXPO, DUR, STAGGER } from '@/lib/motion/easing'
+import { seasonTag } from '@/lib/utils'
 
 interface ZoneHeroProps {
   /** Telemetry eyebrow — "THE BATTLEGROUND" */
@@ -82,7 +83,7 @@ export function ZoneHero({ eyebrow, lines, copy, accent, outlineLines = [] }: Zo
         className="type-label absolute right-gutter top-16 hidden lg:block"
         style={{ color: 'var(--text-lo)', writingMode: 'vertical-rl' }}
       >
-        DAG // SZN 01
+        DAG // SZN {seasonTag()}
       </span>
     </header>
   )

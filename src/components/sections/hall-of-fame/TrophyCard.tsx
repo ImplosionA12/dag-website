@@ -4,6 +4,7 @@ import { HallOfFameEntry, HoFCategory } from '@/types'
 import { GameBadge } from '@/components/ui/GameBadge'
 import { SeasonBadge } from '@/components/ui/SeasonBadge'
 import { HudFrame } from '@/components/ui/HudFrame'
+import { seasonTag } from '@/lib/utils'
 
 interface TrophyCardProps {
   category: HoFCategory
@@ -43,7 +44,7 @@ export function TrophyCard({ category, icon, description, entry, index }: Trophy
           {description}
         </p>
         <span className="type-label mt-auto" style={{ color: 'var(--text-lo)', letterSpacing: '0.26em' }}>
-          UNCLAIMED // SZN 01
+          UNCLAIMED // SZN {seasonTag()}
         </span>
       </div>
     )

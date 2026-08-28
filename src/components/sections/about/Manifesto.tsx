@@ -7,6 +7,7 @@ import { SectionReveal } from '@/components/ui/SectionReveal'
 import { DisplayHeading } from '@/components/ui/DisplayHeading'
 import { CTAButton } from '@/components/ui/CTAButton'
 import { DATA_CONFIG } from '@/config/data'
+import { seasonTag } from '@/lib/utils'
 
 const GAMES: GameType[] = ['FF', 'BGMI', 'Valorant', 'Anime']
 
@@ -70,7 +71,7 @@ export function Manifesto() {
             the grind and the craft share one roof.
           </p>
           <p className="type-body max-w-xl" style={{ color: 'var(--text-mid)' }}>
-            Season 1 is the first broadcast. Everything on this site — the standings,
+            Season 1 was the first broadcast. Everything on this site — the standings,
             the trophies, the polls — is written live as it happens.
           </p>
         </SectionReveal>
@@ -150,7 +151,7 @@ export function Manifesto() {
             <CTAButton href={DATA_CONFIG.forms.joinUs || '#'} size="lg">
               JOIN THE CLUB
             </CTAButton>
-            <HudLabel>RECRUITMENT // SZN 01</HudLabel>
+            <HudLabel>RECRUITMENT // SZN {seasonTag()}</HudLabel>
           </div>
         </SectionReveal>
       </Chapter>

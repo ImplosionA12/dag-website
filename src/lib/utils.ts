@@ -1,4 +1,5 @@
 import { Event, GameType } from '@/types'
+import { DATA_CONFIG } from '@/config/data'
 
 // ─── Date Utilities ──────────────────────────────────────────────────────────
 
@@ -101,4 +102,12 @@ export function getRankLabel(rank: number): string {
 
 export function clsx(...classes: (string | false | null | undefined)[]): string {
   return classes.filter(Boolean).join(' ')
+}
+
+/**
+ * "S2" → "02" — the zero-padded form used in HUD readouts.
+ * Defaults to the current season so a season rollover only needs DATA_CONFIG.
+ */
+export function seasonTag(season: string = DATA_CONFIG.club.currentSeason): string {
+  return season.replace('S', '0')
 }
