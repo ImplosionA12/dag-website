@@ -11,8 +11,10 @@ export const DATA_CONFIG = {
     name: 'DAG',
     fullName: 'Drushya Animations & Gaming',
     tagline: 'Where Gaming Meets Animation',
-    currentSeason: 'S1',
-    seasons: ['S1'],
-    // To add Season 2: seasons: ['S1', 'S2'], currentSeason: 'S2'
+    // S1 = academic year 2025-26 (Cyber Tournament through Blender Bootcamp).
+    // S2 = 2026-27, opened by IGNIS S1 in July 2026.
+    currentSeason: 'S2',
+    seasons: ['S1', 'S2'],
+    // To add Season 3: seasons: ['S1', 'S2', 'S3'], currentSeason: 'S3'
   },
 }
