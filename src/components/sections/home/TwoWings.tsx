@@ -101,18 +101,18 @@ export function TwoWings() {
     <section>
       {header}
       <PinnedScene
-        lengthVh={0.85}
+        lengthVh={0.7}
         className="relative"
         build={(gsap, el, tl) => {
           tl.fromTo(
             el.querySelector('.wing-gaming'),
-            { xPercent: -55, opacity: 0.25 },
+            { xPercent: 9, opacity: 0.5 },
             { xPercent: 0, opacity: 1, ease: 'power2.out' },
             0
           )
           tl.fromTo(
             el.querySelector('.wing-animation'),
-            { xPercent: 55, opacity: 0.25 },
+            { xPercent: -9, opacity: 0.5 },
             { xPercent: 0, opacity: 1, ease: 'power2.out' },
             0
           )
