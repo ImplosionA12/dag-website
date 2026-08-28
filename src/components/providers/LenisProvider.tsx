@@ -24,7 +24,9 @@ export function LenisProvider() {
       if (destroyed) return
 
       const lenis = new Lenis({
-        lerp: 0.1,
+        // 0.1 closed only 10% of the gap per frame — roughly 370ms to catch up
+        // to the wheel, which read as the page lagging behind the input.
+        lerp: 0.2,
         anchors: true,
       })
       setLenis(lenis)

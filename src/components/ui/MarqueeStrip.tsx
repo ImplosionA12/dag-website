@@ -17,8 +17,12 @@ export function MarqueeStrip({ items, className = '' }: MarqueeStripProps) {
     <div
       aria-hidden="true"
       className={clsx('relative overflow-hidden py-8 select-none', className)}
-      style={{ borderTop: '1px solid var(--line-1)', borderBottom: '1px solid var(--line-1)' }}
     >
+      {/* Faded rules, not hard borders. Edge-to-edge 1px lines cut the page
+          into visible bands while scrolling; .hud-rule dies out at both ends. */}
+      <div className="hud-rule absolute top-0 left-0 right-0" />
+      <div className="hud-rule absolute bottom-0 left-0 right-0" />
+
       <div
         className="animate-marquee items-center"
         style={{ width: 'max-content', animationDuration: '70s' }}

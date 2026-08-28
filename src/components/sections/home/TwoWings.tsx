@@ -82,7 +82,7 @@ export function TwoWings() {
 
   if (reducedMotion) {
     return (
-      <section style={{ background: 'var(--void)' }}>
+      <section>
         {header}
         <div className="px-gutter pb-section max-w-7xl mx-auto grid gap-6">
           {WINGS.map(wing => (
@@ -98,21 +98,21 @@ export function TwoWings() {
   }
 
   return (
-    <section style={{ background: 'var(--void)' }}>
+    <section>
       {header}
       <PinnedScene
-        lengthVh={1.2}
+        lengthVh={0.85}
         className="relative"
         build={(gsap, el, tl) => {
           tl.fromTo(
             el.querySelector('.wing-gaming'),
-            { xPercent: -70, opacity: 0 },
+            { xPercent: -55, opacity: 0.25 },
             { xPercent: 0, opacity: 1, ease: 'power2.out' },
             0
           )
           tl.fromTo(
             el.querySelector('.wing-animation'),
-            { xPercent: 70, opacity: 0 },
+            { xPercent: 55, opacity: 0.25 },
             { xPercent: 0, opacity: 1, ease: 'power2.out' },
             0
           )
@@ -132,7 +132,7 @@ export function TwoWings() {
       >
         <div
           className="relative grid md:grid-cols-2 items-stretch overflow-hidden"
-          style={{ minHeight: '100vh', background: 'var(--surface-1)' }}
+          style={{ minHeight: '100vh' }}
         >
           <WingPanel wing={WINGS[0]} />
           <WingPanel wing={WINGS[1]} />

@@ -18,11 +18,10 @@ interface ChapterProps {
 
 function Chapter({ index, label, children }: ChapterProps) {
   return (
-    <section
-      className="relative px-gutter py-section"
-      style={{ borderTop: '1px solid var(--line-1)' }}
-      aria-label={label}
-    >
+    <section className="relative px-gutter py-section" aria-label={label}>
+      {/* Faded rule rather than a hard border — see MarqueeStrip. */}
+      <div className="hud-rule absolute top-0 left-gutter right-gutter" aria-hidden="true" />
+
       <div className="max-w-5xl mx-auto grid md:grid-cols-[8rem_1fr] gap-8 md:gap-16">
         <SectionReveal>
           <div className="md:sticky md:top-32">

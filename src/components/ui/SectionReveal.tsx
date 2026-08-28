@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { ReactNode, CSSProperties } from 'react'
-import { EASE_OUT, DUR } from '@/lib/motion/easing'
+import { EASE_OUT } from '@/lib/motion/easing'
 
 interface SectionRevealProps {
   children: ReactNode
@@ -23,14 +23,18 @@ export function SectionReveal({
   delay = 0,
   className = '',
   style,
-  distance = 32,
+  distance = 24,
 }: SectionRevealProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: distance }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-80px' }}
-      transition={{ duration: DUR.base, ease: EASE_OUT, delay }}
+      // Expand the root 260px BELOW the viewport so a section starts revealing
+      // before it scrolls into view and is already settled when it arrives.
+      // The old '-80px' shrank the root, firing only once a section was 80px
+      // inside the fold — which is why scrolling showed blank space first.
+      viewport={{ once: true, margin: '0px 0px 260px 0px' }}
+      transition={{ duration: 0.45, ease: EASE_OUT, delay }}
       className={className}
       style={style}
     >
