@@ -5,6 +5,7 @@ import { TwoWings } from '@/components/sections/home/TwoWings'
 import { SeasonStats } from '@/components/sections/home/SeasonStats'
 import { JoinCTA } from '@/components/sections/home/JoinCTA'
 import { MarqueeStrip } from '@/components/ui/MarqueeStrip'
+import { AmbientField } from '@/components/cinematic/AmbientField'
 
 export const metadata: Metadata = {
   title: 'DAG — Enter the Arena',
@@ -15,6 +16,9 @@ export const metadata: Metadata = {
 export default function HomePage() {
   return (
     <div data-zone="home">
+      {/* One light source for the whole zone — sections sit inside it */}
+      <AmbientField />
+
       {/* Scene 1 — Title screen */}
       <HomeHero />
 

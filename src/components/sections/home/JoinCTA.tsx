@@ -14,10 +14,6 @@ export function JoinCTA() {
       className="relative flex items-center justify-center px-gutter overflow-hidden"
       style={{
         minHeight: '85vh',
-        background: `
-          radial-gradient(ellipse 90% 70% at 50% 60%, rgba(74,26,122,0.30) 0%, transparent 65%),
-          var(--void)
-        `,
       }}
     >
       <div className="scanlines opacity-30" aria-hidden="true" />

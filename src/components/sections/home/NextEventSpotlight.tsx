@@ -20,13 +20,7 @@ export function NextEventSpotlight() {
   const days = nextEvent ? daysRemaining(nextEvent.date) : null
 
   return (
-    <section
-      className="relative px-gutter py-section"
-      style={{
-        background:
-          'linear-gradient(180deg, var(--void) 0%, var(--surface-1) 50%, var(--void) 100%)',
-      }}
-    >
+    <section className="relative px-gutter py-section">
       <div className="max-w-6xl mx-auto">
         <SectionReveal>
           <div className="flex items-baseline justify-between mb-10">

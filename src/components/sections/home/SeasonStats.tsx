@@ -23,13 +23,7 @@ export function SeasonStats() {
   const seasons = DATA_CONFIG.club.seasons.length
 
   return (
-    <section
-      className="relative px-gutter py-section overflow-hidden"
-      style={{
-        background:
-          'linear-gradient(180deg, var(--void) 0%, rgba(74,26,122,0.14) 50%, var(--void) 100%)',
-      }}
-    >
+    <section className="relative px-gutter py-section overflow-hidden">
       <div className="hud-rule absolute top-0 left-gutter right-gutter" aria-hidden="true" />
 
       <div className="max-w-7xl mx-auto">
