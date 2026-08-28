@@ -22,10 +22,11 @@ export function Footer() {
   const year = new Date().getFullYear()
 
   return (
-    <footer
-      className="relative overflow-hidden"
-      style={{ backgroundColor: 'var(--void)', borderTop: '1px solid var(--line-1)' }}
-    >
+    <footer className="relative overflow-hidden">
+      {/* Faded rule, no fill. An opaque --void panel here occluded the fixed
+          AmbientField and put a hard tonal step at the footer's top edge. */}
+      <div className="hud-rule absolute top-0 left-0 right-0" aria-hidden="true" />
+
       {/* Giant clipped wordmark bleeding off the bottom */}
       <p
         aria-hidden="true"
