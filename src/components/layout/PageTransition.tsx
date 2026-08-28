@@ -19,16 +19,20 @@ import { useReducedMotion } from '@/hooks/useReducedMotion'
  * travels at a constant thickness instead of being squashed by the scale.
  */
 
-/** Zones whose wipe is not the default violet. Gold is HoF's, per gold discipline. */
-const ZONE_ACCENT: Record<string, string> = {
-  '/hall-of-fame': 'var(--gold-400)',
+/**
+ * Zones whose wipe is not the default violet. Gold is HoF's, per gold discipline.
+ * Each entry is [edge, glow] — the glow token is the same hue pre-multiplied
+ * with alpha, since a bare var() can't be given transparency inline.
+ */
+const ZONE_ACCENT: Record<string, [string, string]> = {
+  '/hall-of-fame': ['var(--gold-400)', 'var(--gold-glow)'],
 }
 
-function accentFor(pathname: string): string {
+function accentFor(pathname: string): [string, string] {
   for (const route of Object.keys(ZONE_ACCENT)) {
     if (pathname.startsWith(route)) return ZONE_ACCENT[route]
   }
-  return 'var(--violet-300)'
+  return ['var(--violet-300)', 'var(--violet-glow)']
 }
 
 interface PageTransitionProps {
@@ -38,7 +42,7 @@ interface PageTransitionProps {
 export function PageTransition({ children }: PageTransitionProps) {
   const pathname = usePathname()
   const reducedMotion = useReducedMotion()
-  const accent = accentFor(pathname)
+  const [edge, glow] = accentFor(pathname)
 
   if (reducedMotion) {
     return <div style={{ position: 'relative', minHeight: '100vh' }}>{children}</div>
@@ -56,8 +60,11 @@ export function PageTransition({ children }: PageTransitionProps) {
         {children}
       </motion.div>
 
-      {/* Shutter — a panel that sweeps up off-screen, trailing a lit edge.
-          Distinct from the page: void-on-void made the old one invisible. */}
+      {/* Shutter — a void panel that sweeps up off-screen, trailing a lit edge.
+          The panel body is flat --void, exactly the page's own black: grading it
+          through --surface-2/3 made a band of visibly different, purpler blacks
+          slide across the screen. All the visibility comes from the accent
+          pooling at the leading edge, so nothing but light ever moves. */}
       <motion.div
         key={`shutter-${pathname}`}
         className="z-transition"
@@ -67,9 +74,9 @@ export function PageTransition({ children }: PageTransitionProps) {
         style={{
           position: 'fixed',
           inset: 0,
-          background: `linear-gradient(180deg, var(--void) 0%, var(--surface-2) 62%, var(--surface-3) 100%)`,
-          borderBottom: `2px solid ${accent}`,
-          boxShadow: `0 12px 60px -8px ${accent}`,
+          background: `linear-gradient(180deg, transparent 80%, ${glow} 100%), var(--void)`,
+          borderBottom: `2px solid ${edge}`,
+          boxShadow: `0 14px 70px -6px ${glow}`,
           pointerEvents: 'none',
           willChange: 'transform',
         }}
