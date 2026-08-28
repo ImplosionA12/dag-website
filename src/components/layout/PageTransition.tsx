@@ -1,48 +1,34 @@
 'use client'
 
 import { ReactNode } from 'react'
-import { motion, Variants } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { usePathname } from 'next/navigation'
 import { EASE_OUT, EASE_EXPO } from '@/lib/motion/easing'
+import { useReducedMotion } from '@/hooks/useReducedMotion'
 
-// Enter-only choreography — App Router unmounts the old page immediately,
-// so exit animations are unreliable. Each zone gets a distinct entrance.
-const ROUTE_ENTER: Record<string, Variants> = {
-  '/': {
-    initial: { opacity: 0 },
-    animate: { opacity: 1, transition: { duration: 0.5, ease: EASE_OUT } },
-  },
-  '/events': {
-    initial: { opacity: 0, x: 48, clipPath: 'inset(0 100% 0 0)' },
-    animate: { opacity: 1, x: 0, clipPath: 'inset(0 0% 0 0)', transition: { duration: 0.45, ease: EASE_OUT } },
-  },
-  '/leaderboards': {
-    initial: { opacity: 0, clipPath: 'inset(0 0 100% 0)' },
-    animate: { opacity: 1, clipPath: 'inset(0 0 0% 0)', transition: { duration: 0.5, ease: EASE_OUT } },
-  },
-  '/hall-of-fame': {
-    initial: { opacity: 0, scale: 0.975 },
-    animate: { opacity: 1, scale: 1, transition: { duration: 0.55, ease: EASE_EXPO } },
-  },
-  '/members': {
-    initial: { opacity: 0, scale: 0.985 },
-    animate: { opacity: 1, scale: 1, transition: { duration: 0.45, ease: EASE_OUT } },
-  },
-  '/polls': {
-    initial: { opacity: 0, y: 28, clipPath: 'inset(100% 0 0 0)' },
-    animate: { opacity: 1, y: 0, clipPath: 'inset(0% 0 0 0)', transition: { duration: 0.5, ease: EASE_EXPO } },
-  },
-  '/about': {
-    initial: { opacity: 0 },
-    animate: { opacity: 1, transition: { duration: 0.65, ease: EASE_OUT } },
-  },
+/**
+ * Route transition — enter-only. App Router unmounts the old page immediately,
+ * so exit animations never get to run.
+ *
+ * Everything here animates `transform` and `opacity` and nothing else. The
+ * previous version animated `clipPath` and `scale` on a wrapper holding the
+ * entire page; the compositor can't take either, so every frame repainted and
+ * re-rasterized the whole document — that was the jank.
+ *
+ * The shutter slides on translateY rather than scaleY so its leading edge line
+ * travels at a constant thickness instead of being squashed by the scale.
+ */
+
+/** Zones whose wipe is not the default violet. Gold is HoF's, per gold discipline. */
+const ZONE_ACCENT: Record<string, string> = {
+  '/hall-of-fame': 'var(--gold-400)',
 }
 
-function getEnter(pathname: string) {
-  for (const route of Object.keys(ROUTE_ENTER)) {
-    if (route !== '/' && pathname.startsWith(route)) return ROUTE_ENTER[route]
+function accentFor(pathname: string): string {
+  for (const route of Object.keys(ZONE_ACCENT)) {
+    if (pathname.startsWith(route)) return ZONE_ACCENT[route]
   }
-  return ROUTE_ENTER['/']
+  return 'var(--violet-300)'
 }
 
 interface PageTransitionProps {
@@ -51,33 +37,41 @@ interface PageTransitionProps {
 
 export function PageTransition({ children }: PageTransitionProps) {
   const pathname = usePathname()
-  const enter = getEnter(pathname)
+  const reducedMotion = useReducedMotion()
+  const accent = accentFor(pathname)
+
+  if (reducedMotion) {
+    return <div style={{ position: 'relative', minHeight: '100vh' }}>{children}</div>
+  }
 
   return (
     <div style={{ position: 'relative' }}>
       <motion.div
         key={pathname}
-        variants={enter}
-        initial="initial"
-        animate="animate"
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.42, ease: EASE_OUT, delay: 0.06 }}
         style={{ minHeight: '100vh' }}
       >
         {children}
       </motion.div>
 
-      {/* Shutter — a void panel that wipes open on every route mount */}
+      {/* Shutter — a panel that sweeps up off-screen, trailing a lit edge.
+          Distinct from the page: void-on-void made the old one invisible. */}
       <motion.div
         key={`shutter-${pathname}`}
         className="z-transition"
-        initial={{ scaleY: 1 }}
-        animate={{ scaleY: 0 }}
-        transition={{ duration: 0.55, ease: EASE_EXPO }}
+        initial={{ y: '0%' }}
+        animate={{ y: '-100%' }}
+        transition={{ duration: 0.62, ease: EASE_EXPO }}
         style={{
           position: 'fixed',
           inset: 0,
-          background: 'var(--void)',
-          transformOrigin: 'top',
+          background: `linear-gradient(180deg, var(--void) 0%, var(--surface-2) 62%, var(--surface-3) 100%)`,
+          borderBottom: `2px solid ${accent}`,
+          boxShadow: `0 12px 60px -8px ${accent}`,
           pointerEvents: 'none',
+          willChange: 'transform',
         }}
         aria-hidden="true"
       />
