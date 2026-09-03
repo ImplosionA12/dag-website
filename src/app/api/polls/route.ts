@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { Poll, PollsResponse } from '@/types/polls'
+import { resolveSheetUrl } from '@/lib/sheets'
 
 const MOCK_POLLS: Poll[] = [
   {
@@ -55,7 +56,7 @@ const MOCK_POLLS: Poll[] = [
 ]
 
 export async function GET() {
-  const url = process.env.NEXT_PUBLIC_SHEETS_POLLS_URL
+  const url = resolveSheetUrl(process.env.NEXT_PUBLIC_SHEETS_POLLS_URL)
 
   if (!url) {
     return NextResponse.json({ polls: MOCK_POLLS } satisfies PollsResponse)

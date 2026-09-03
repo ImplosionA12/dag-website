@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { EventsResponse, Event, GameType, EventStatus, EventType } from '@/types'
 import { debug } from '@/lib/debug'
+import { resolveSheetUrl } from '@/lib/sheets'
 
 /**
  * Expected Google Sheet columns (exact header names, in any order):
@@ -35,7 +36,7 @@ function rowToEvent(row: Record<string, string>): Event | null {
 }
 
 export async function GET() {
-  const url = process.env.NEXT_PUBLIC_SHEETS_EVENTS_URL
+  const url = resolveSheetUrl(process.env.NEXT_PUBLIC_SHEETS_EVENTS_URL)
 
   debug.log('[api/events] Sheet URL configured:', !!url)
 

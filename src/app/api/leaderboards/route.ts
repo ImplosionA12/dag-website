@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { csvToObjects } from '@/lib/csv'
 import { LeaderboardsResponse, LeaderboardEntry, GameType } from '@/types'
 import { debug } from '@/lib/debug'
+import { resolveSheetUrl } from '@/lib/sheets'
 
 /**
  * Expected Google Sheet columns (exact header names, in any order):
@@ -31,7 +32,7 @@ function rowToEntry(row: Record<string, string>): LeaderboardEntry | null {
 }
 
 export async function GET() {
-  const url = process.env.NEXT_PUBLIC_SHEETS_LEADERBOARDS_URL
+  const url = resolveSheetUrl(process.env.NEXT_PUBLIC_SHEETS_LEADERBOARDS_URL)
 
   debug.log('[api/leaderboards] Sheet URL configured:', !!url)
 
