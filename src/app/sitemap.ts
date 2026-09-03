@@ -1,8 +1,29 @@
 import type { MetadataRoute } from 'next'
+import { fetchEventsFeed } from '@/lib/feeds'
+import { eventSlug } from '@/lib/utils'
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://yourdomain.com'
 
-export default function sitemap(): MetadataRoute.Sitemap {
+/**
+ * Event dossiers are the only data-driven URLs on the site, so the sitemap has to read the
+ * feed to know them. A broken feed drops them rather than failing the build — a sitemap
+ * missing rows degrades discovery; a sitemap that throws takes the deploy with it.
+ */
+async function eventRoutes(): Promise<MetadataRoute.Sitemap> {
+  try {
+    const events = await fetchEventsFeed()
+    return (events ?? []).map(event => ({
+      url: `${BASE_URL}/events/${eventSlug(event)}`,
+      lastModified: new Date(event.date),
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
+    }))
+  } catch {
+    return []
+  }
+}
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     {
       url: BASE_URL,
@@ -46,5 +67,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'monthly',
       priority: 0.6,
     },
+    ...(await eventRoutes()),
   ]
 }

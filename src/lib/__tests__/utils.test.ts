@@ -9,8 +9,12 @@ import {
   clsx,
   GAME_COLORS,
   GAME_LABELS,
+  slugify,
+  eventSlug,
+  findEventBySlug,
+  standingsForEvent,
 } from '../utils'
-import { Event } from '@/types'
+import { Event, LeaderboardEntry } from '@/types'
 
 // ─── Helper ─────────────────────────────────────────────────────────────────
 
@@ -220,5 +224,85 @@ describe('GAME_LABELS', () => {
     expect(GAME_LABELS.FF).toBe('Free Fire')
     expect(GAME_LABELS.BGMI).toBe('BGMI')
     expect(GAME_LABELS.Valorant).toBe('Valorant')
+  })
+})
+
+describe('event slug helpers', () => {
+  const event = (over: Partial<Event> = {}): Event => ({
+    id: '1',
+    event_name: 'Wipe Out Arena: Reloaded',
+    date: '2026-08-08',
+    description: '',
+    season: 'S2',
+    status: 'closed',
+    event_type: 'tournament',
+    register_url: '',
+    game_type: 'FF',
+    ...over,
+  })
+
+  it('slugifies punctuation and spacing', () => {
+    expect(slugify('Wipe Out Arena: Reloaded')).toBe('wipe-out-arena-reloaded')
+    expect(slugify('  IGNIS  S1  ')).toBe('ignis-s1')
+  })
+
+  it('falls back to the sheet id when a name has no slug characters', () => {
+    expect(eventSlug(event({ event_name: '!!!', id: '7' }))).toBe('7')
+  })
+
+  it('finds an event by slug', () => {
+    const events = [event(), event({ id: '2', event_name: 'IGNIS S1' })]
+
+    expect(findEventBySlug(events, 'ignis-s1')?.id).toBe('2')
+  })
+
+  it('still resolves a bare sheet id, so pre-slug links keep working', () => {
+    expect(findEventBySlug([event()], '1')?.event_name).toBe('Wipe Out Arena: Reloaded')
+  })
+
+  it('returns null for an unknown slug', () => {
+    expect(findEventBySlug([event()], 'nope')).toBeNull()
+  })
+})
+
+describe('standingsForEvent', () => {
+  const evt: Event = {
+    id: '1',
+    event_name: 'Cyber Tournament',
+    date: '2025-09-21',
+    description: '',
+    season: 'S1',
+    status: 'completed',
+    event_type: 'tournament',
+    register_url: '',
+    game_type: 'BGMI',
+  }
+
+  const row = (over: Partial<LeaderboardEntry>): LeaderboardEntry => ({
+    id: 'x',
+    event_name: 'Cyber Tournament',
+    season: 'S1',
+    rank: 1,
+    player_name: 'Ghost',
+    points: 10,
+    game_type: 'BGMI',
+    ...over,
+  })
+
+  it('keeps only rows for that event, sorted by rank', () => {
+    const result = standingsForEvent(
+      [
+        row({ id: 'b', rank: 2 }),
+        row({ id: 'c', rank: 1 }),
+        row({ id: 'd', event_name: 'Shadow Ops Arena', rank: 1 }),
+      ],
+      evt
+    )
+
+    expect(result.map(r => r.id)).toEqual(['c', 'b'])
+  })
+
+  it('matches names case-insensitively and ignores stray sheet whitespace', () => {
+    expect(standingsForEvent([row({ event_name: '  cyber tournament ' })], evt)).toHaveLength(1)
   })
 })

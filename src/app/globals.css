@@ -386,6 +386,22 @@ body {
   padding-left: 6px;
 }
 
+/* Event title -> dossier. Underline only on hover: a permanently underlined title
+   would fight the HUD typography on every card in the list. */
+.mission-link {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.mission-link:hover,
+.mission-link:focus-visible {
+  color: var(--zone-accent);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-thickness: 1px;
+}
+
 /* ─── Card & row micro-interactions ─────────────────────────────────────── */
 
 .mission-card,

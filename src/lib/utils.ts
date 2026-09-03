@@ -1,4 +1,4 @@
-import { Event, GameType } from '@/types'
+import { Event, GameType, LeaderboardEntry } from '@/types'
 import { DATA_CONFIG } from '@/config/data'
 
 // ─── Date Utilities ──────────────────────────────────────────────────────────
@@ -62,6 +62,49 @@ export function splitEvents(events: Event[]): { upcoming: Event[]; past: Event[]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
   return { upcoming, past }
+}
+
+/**
+ * URL slug for an event — "Wipe Out Arena: Reloaded" -> "wipe-out-arena-reloaded".
+ *
+ * Sheet ids are bare row numbers ("1".."10"), which make for opaque, unstable URLs:
+ * reordering the sheet would silently repoint every shared link. Slugs are derived from
+ * the name instead, so a detail URL reads as the event it shows.
+ */
+export function slugify(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
+export function eventSlug(event: Event): string {
+  return slugify(event.event_name) || event.id
+}
+
+/**
+ * Resolves a URL segment to an event. Matches the slug first, then the raw sheet id, so
+ * links shared before slugs existed still land.
+ */
+export function findEventBySlug(events: Event[], slug: string): Event | null {
+  const wanted = slug.toLowerCase()
+  return (
+    events.find(e => eventSlug(e) === wanted) ??
+    events.find(e => e.id.toLowerCase() === wanted) ??
+    null
+  )
+}
+
+/** Standings rows for one event, best first. Matched on name — the sheet has no event id. */
+export function standingsForEvent(
+  entries: LeaderboardEntry[],
+  event: Event
+): LeaderboardEntry[] {
+  const name = event.event_name.trim().toLowerCase()
+  return entries
+    .filter(e => (e.event_name || '').trim().toLowerCase() === name)
+    .sort((a, b) => a.rank - b.rank)
 }
 
 // ─── Game Type Utilities ─────────────────────────────────────────────────────

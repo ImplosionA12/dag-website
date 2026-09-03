@@ -1,7 +1,8 @@
 'use client'
 
+import Link from 'next/link'
 import { Event } from '@/types'
-import { daysRemaining, formatDate, GAME_COLORS } from '@/lib/utils'
+import { daysRemaining, eventSlug, formatDate, GAME_COLORS } from '@/lib/utils'
 import { HudFrame } from '@/components/ui/HudFrame'
 import { GameBadge } from '@/components/ui/GameBadge'
 import { SeasonBadge } from '@/components/ui/SeasonBadge'
@@ -71,8 +72,14 @@ export function MissionCard({ event, index }: MissionCardProps) {
             </span>
           </div>
 
-          <h3 className="type-h3 mb-3" style={{ color: 'var(--text-hi)' }}>
-            {event.event_name}
+          <h3 className="type-h3 mb-3">
+            <Link
+              href={`/events/${eventSlug(event)}`}
+              className="mission-link"
+              style={{ color: 'var(--text-hi)' }}
+            >
+              {event.event_name}
+            </Link>
           </h3>
           <p className="type-body mb-2 max-w-xl" style={{ color: 'var(--text-mid)', fontSize: '0.88rem' }}>
             {event.description}
@@ -87,9 +94,7 @@ export function MissionCard({ event, index }: MissionCardProps) {
           {isOpen && event.register_url ? (
             <GhostButton href={event.register_url}>DEPLOY</GhostButton>
           ) : (
-            <span className="type-label" style={{ color: 'var(--text-lo)' }}>
-              STANDBY
-            </span>
+            <GhostButton href={`/events/${eventSlug(event)}`}>BRIEF</GhostButton>
           )}
         </div>
       </div>

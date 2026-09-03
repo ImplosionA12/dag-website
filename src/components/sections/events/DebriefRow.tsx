@@ -1,7 +1,8 @@
 'use client'
 
+import Link from 'next/link'
 import { Event } from '@/types'
-import { formatDate, GAME_COLORS } from '@/lib/utils'
+import { eventSlug, formatDate, GAME_COLORS } from '@/lib/utils'
 import { GameBadge } from '@/components/ui/GameBadge'
 
 interface DebriefRowProps {
@@ -22,8 +23,14 @@ export function DebriefRow({ event }: DebriefRowProps) {
       </span>
 
       <div className="min-w-0">
-        <p className="type-h3 truncate" style={{ color: 'var(--text-mid)', fontSize: '1.1rem' }}>
-          {event.event_name}
+        <p className="type-h3 truncate" style={{ fontSize: '1.1rem' }}>
+          <Link
+            href={`/events/${eventSlug(event)}`}
+            className="mission-link"
+            style={{ color: 'var(--text-mid)' }}
+          >
+            {event.event_name}
+          </Link>
         </p>
         <span className="type-label md:hidden" style={{ color: 'var(--text-lo)' }}>
           {formatDate(event.date)}
