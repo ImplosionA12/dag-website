@@ -1,0 +1,84 @@
+-- DAG seed data, generated from the live sheet feeds on 2026-09-05.
+-- Run after schema.sql. Safe to re-run: every insert upserts on the primary key.
+
+-- 10 events
+insert into public.events (id, event_name, date, description, season, status, event_type, register_url, game_type, recording_url) values
+  ('1', 'Cyber Tournament', '2025-09-21', 'Two-night BGMI tournament. 37 squads and 148 players through a group stage on Erangel and Sanhok, top 8 of each group into a four-match final. HypeBoyyy took it on 56 points.', 'S1', 'completed', 'tournament', '', 'BGMI', null),
+  ('2', 'Blender Workshop', '2026-03-07', 'The club''s biggest turnout yet - 265 registered. A beginner-friendly run through Blender navigation, modelling, lighting, materials and animation, ending with a rendered scene of your own.', 'S1', 'completed', 'workshop', '', 'Other', null),
+  ('3', 'Wipe Out Arena', '2026-03-15', 'Free Fire at full scale: 169 squads, 676 players, 14 lobbies across three rounds and two nights, with a buffer round handing 4th-6th place a second shot at qualifying.', 'S1', 'completed', 'tournament', '', 'FF', null),
+  ('4', 'Blender Creator Lab', '2026-03-17', 'Hands-on 3D modelling lab for 78 participants. Object manipulation, scene composition, lighting and rendering - and how Blender is actually used in animation, games and archviz.', 'S1', 'completed', 'workshop', '', 'Other', null),
+  ('5', 'PixelHack', '2026-04-04', 'The club''s first offline hackathon, in Einstein Hall AB-1. 81 teams and 241 registrations, 104 on the floor building playable games in Unity, Godot and Unreal against the clock.', 'S1', 'completed', 'tournament', '', 'Other', null),
+  ('6', 'Shadow Ops Arena', '2026-04-05', 'Two-night BGMI tournament, 47 squads and 188 players, decided over a four-match final. Team Spidey closed it out on 60 points.', 'S1', 'completed', 'tournament', '', 'BGMI', null),
+  ('7', 'Pixel Forge', '2026-04-21', 'Single-evening Unreal Engine 5 workshop for 27 participants - UE5 interface, level design, Blueprint scripting and lighting, from zero engine experience to a working interactive scene.', 'S1', 'completed', 'workshop', '', 'Other', null),
+  ('8', 'Blender Bootcamp', '2026-04-28', 'Advanced Blender session for 29 participants: scene staging, furniture blockout, materials and surfacing, cinematic lighting, and a final render.', 'S1', 'completed', 'workshop', '', 'Other', null),
+  ('9', 'IGNIS S1', '2026-07-25', '34 teams split into two BGMI groups for qualifiers, top 8 of each into a 16-team final across Miramar, Sanhok, Vikendi and Erangel. FolkMareEsports took the crown on 51 points.', 'S2', 'completed', 'tournament', '', 'BGMI', null),
+  ('10', 'Wipe Out Arena: Reloaded', '2026-08-08', 'Second edition of the Free Fire tournament, returning with a bigger format and a nominal entry fee. The tournament did not run to completion.', 'S2', 'closed', 'tournament', '', 'FF', null)
+on conflict (id) do update set
+  event_name = excluded.event_name, date = excluded.date, description = excluded.description,
+  season = excluded.season, status = excluded.status, event_type = excluded.event_type,
+  register_url = excluded.register_url, game_type = excluded.game_type, recording_url = excluded.recording_url;
+
+-- 32 leaderboard rows
+insert into public.leaderboards (id, event_name, season, rank, player_name, points, game_type, team_name) values
+  ('1', 'Cyber Tournament', 'S1', 1, 'EgoSENPAIx60hz', 56, 'BGMI', 'HypeBoyyy'),
+  ('2', 'Cyber Tournament', 'S1', 2, 'DRACULA', 50, 'BGMI', 'Equal To Heavens'),
+  ('3', 'Cyber Tournament', 'S1', 3, 'DiddyĪJuHiL٭', 49, 'BGMI', 'NT ESPORTS'),
+  ('4', 'Cyber Tournament', 'S1', 4, 'NotHunTerXD', 42, 'BGMI', 'NotHunters'),
+  ('5', 'Cyber Tournament', 'S1', 5, 'TG | BEASTYT', 26, 'BGMI', 'TG Gamers'),
+  ('6', 'Cyber Tournament', 'S1', 6, 'ITACHIメplays', 18, 'BGMI', 'Team AgR'),
+  ('7', 'Cyber Tournament', 'S1', 7, 'DRACULA YT', 18, 'BGMI', 'Team DRACULA'),
+  ('8', 'Cyber Tournament', 'S1', 8, 'Gamer YV', 18, 'BGMI', 'Straw hats'),
+  ('9', 'Cyber Tournament', 'S1', 9, 'Ａｕｒａ４５', 17, 'BGMI', 'Aura'),
+  ('10', 'Cyber Tournament', 'S1', 10, 'VárunSàñji', 17, 'BGMI', 'Clutch Masters'),
+  ('11', 'Cyber Tournament', 'S1', 11, 'OGxS8UL', 10, 'BGMI', 'T. BharghavNaidu'),
+  ('12', 'Cyber Tournament', 'S1', 12, 'SaiKiran3000', 10, 'BGMI', 'OJAS G.'),
+  ('13', 'Cyber Tournament', 'S1', 13, 'SHARMAōōōJI', 8, 'BGMI', 'SANSKARI'),
+  ('14', 'Cyber Tournament', 'S1', 14, 'COBRA', 7, 'BGMI', 'SaiRammmm'),
+  ('15', 'Cyber Tournament', 'S1', 15, 'Namma RCB', 7, 'BGMI', 'Zero Resistance'),
+  ('16', 'Cyber Tournament', 'S1', 16, 'priiib', 1, 'BGMI', 'Khooni Darinde'),
+  ('17', 'Shadow Ops Arena', 'S1', 1, 'VGTxSPIDEY', 60, 'BGMI', 'Team Spidey'),
+  ('18', 'Shadow Ops Arena', 'S1', 2, 'SunaPuksununda', 51, 'BGMI', 'SoloPlay'),
+  ('19', 'Shadow Ops Arena', 'S1', 3, 'SexyHacker', 44, 'BGMI', 'Mohanpura Gangsters'),
+  ('20', 'Shadow Ops Arena', 'S1', 4, 'Gen x Kishuu', 39, 'BGMI', 'GEN ALPHA'),
+  ('21', 'Shadow Ops Arena', 'S1', 5, 'SHARMAjI', 28, 'BGMI', 'Team blaze'),
+  ('22', 'Shadow Ops Arena', 'S1', 6, 'DRACULA YTB', 20, 'BGMI', 'Team Dracula'),
+  ('23', 'Shadow Ops Arena', 'S1', 7, 'BTSreeKar', 17, 'BGMI', 'Lapaki gamers'),
+  ('24', 'Shadow Ops Arena', 'S1', 8, 'TheSnapToxic', 15, 'BGMI', 'Sher-e-Deccan'),
+  ('25', 'IGNIS S1', 'S2', 1, 'UrFragileHand', 51, 'BGMI', 'FolkMareEsports'),
+  ('26', 'IGNIS S1', 'S2', 2, 'ZGxSAM777', 46, 'BGMI', 'ZenGods ESports'),
+  ('27', 'IGNIS S1', 'S2', 3, 'GLOBE卍TROTTER', 43, 'BGMI', 'Team Avengers'),
+  ('28', 'IGNIS S1', 'S2', 4, 'TG BEAST YT', 30, 'BGMI', 'Cloud Nine'),
+  ('29', 'IGNIS S1', 'S2', 5, 'OG|ABHI', 25, 'BGMI', 'TR4'),
+  ('30', 'IGNIS S1', 'S2', 6, 'BADヤBÈÅST', 21, 'BGMI', 'Black Bulls'),
+  ('31', 'IGNIS S1', 'S2', 7, 'SpEcTr3theONE', 21, 'BGMI', 'Team ATHENS'),
+  ('32', 'IGNIS S1', 'S2', 8, 'RREXDEMON', 20, 'BGMI', 'Team Legit')
+on conflict (id) do update set
+  event_name = excluded.event_name, season = excluded.season, rank = excluded.rank,
+  player_name = excluded.player_name, points = excluded.points,
+  game_type = excluded.game_type, team_name = excluded.team_name;
+
+-- 3 polls. These are the mock polls the site has always shown. Vote counts are
+-- deliberately NOT seeded: poll_votes is the real tally now, and inserting rows there
+-- would fabricate votes nobody cast.
+insert into public.polls (id, type, title, description, season, status, ends_at, form_url) values
+  ('best-game-s1', 'general', 'Best Game of Season 1?', 'Which game defined your Season 1 experience?', 'S1', 'open', '2026-04-01', null),
+  ('next-workshop', 'animation', 'Next Workshop Topic?', 'Vote for the topic you want covered in the next club workshop.', 'S1', 'open', '2026-03-28', null),
+  ('tournament-format', 'event', 'Preferred Tournament Format?', 'How should we structure future tournaments?', 'S1', 'closed', null, null)
+on conflict (id) do update set
+  type = excluded.type, title = excluded.title, description = excluded.description,
+  season = excluded.season, status = excluded.status, ends_at = excluded.ends_at, form_url = excluded.form_url;
+
+insert into public.poll_options (poll_id, id, label, position) values
+  ('best-game-s1', 'free-fire', 'Free Fire', 0),
+  ('best-game-s1', 'bgmi', 'BGMI', 1),
+  ('best-game-s1', 'valorant', 'Valorant', 2),
+  ('best-game-s1', 'other', 'Other', 3),
+  ('next-workshop', 'video-editing', 'Video Editing', 0),
+  ('next-workshop', '3d-modeling', '3D Modeling', 1),
+  ('next-workshop', 'motion-graphics', 'Motion Graphics', 2),
+  ('next-workshop', 'game-design', 'Game Design', 3),
+  ('tournament-format', 'solo', 'Solo', 0),
+  ('tournament-format', 'duo', 'Duo', 1),
+  ('tournament-format', 'squad', 'Squad', 2),
+  ('tournament-format', 'mixed', 'Mixed', 3)
+on conflict (poll_id, id) do update set label = excluded.label, position = excluded.position;
