@@ -55,6 +55,13 @@ const MOCK_POLLS: Poll[] = [
   },
 ]
 
+/**
+ * These routes render statically, so without an explicit window they are generated once at
+ * build and never again. fetchRows sets the same value on the sheet fetch; stating it here
+ * too means a route stays fresh regardless of which source it reads.
+ */
+export const revalidate = 60
+
 export async function GET() {
   const url = resolveSheetUrl(process.env.NEXT_PUBLIC_SHEETS_POLLS_URL)
 

@@ -1,7 +1,7 @@
 import { csvToObjects } from '@/lib/csv'
 import { debug } from '@/lib/debug'
 import { resolveSheetUrl } from '@/lib/sheets'
-import { getSupabase, usesSupabase } from '@/lib/supabase'
+import { getSupabase, usesSupabase, REVALIDATE_SECONDS } from '@/lib/supabase'
 import { Event, EventStatus, EventType, GameType, LeaderboardEntry } from '@/types'
 
 /**
@@ -36,7 +36,7 @@ async function fetchRows(url: string, label: string): Promise<Record<string, str
 
   try {
     const res = await fetch(url, {
-      next: { revalidate: 60 },
+      next: { revalidate: REVALIDATE_SECONDS },
       headers: { Accept: 'text/csv' },
       signal: controller.signal,
     })
