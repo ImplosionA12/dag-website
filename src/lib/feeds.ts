@@ -1,6 +1,7 @@
 import { csvToObjects } from '@/lib/csv'
 import { debug } from '@/lib/debug'
 import { resolveSheetUrl } from '@/lib/sheets'
+import { getSupabase, usesSupabase } from '@/lib/supabase'
 import { Event, EventStatus, EventType, GameType, LeaderboardEntry } from '@/types'
 
 /**
@@ -80,7 +81,26 @@ export function rowToEvent(row: Record<string, string>): Event | null {
   }
 }
 
+async function fetchEventsFromSupabase(): Promise<Event[]> {
+  const { data, error } = await getSupabase()!
+    .from('events')
+    .select('id, event_name, date, description, season, status, event_type, register_url, game_type, recording_url')
+    .order('date', { ascending: false })
+
+  if (error) throw new Error(`[feeds/events] Supabase: ${error.message}`)
+
+  // Reuses rowToEvent so both sources land on identical objects — the column names match the
+  // sheet headers on purpose, so validation and defaulting cannot drift between the two.
+  return (data ?? [])
+    .map(row => rowToEvent(Object.fromEntries(
+      Object.entries(row).map(([k, v]) => [k, v == null ? '' : String(v)])
+    )))
+    .filter((e): e is Event => e !== null)
+}
+
 export async function fetchEventsFeed(): Promise<Event[] | null> {
+  if (usesSupabase('events')) return fetchEventsFromSupabase()
+
   const url = resolveSheetUrl(process.env.NEXT_PUBLIC_SHEETS_EVENTS_URL)
   if (!url) {
     debug.warn('[feeds/events] No sheet URL configured')

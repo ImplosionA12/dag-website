@@ -108,22 +108,23 @@ create index if not exists poll_votes_poll_idx on public.poll_votes (poll_id);
 -- Tallies belong in the database, not in the app: the app would otherwise fetch every vote
 -- row just to count them.
 --
--- This view is intentionally left SECURITY DEFINER (the default). poll_votes has no select
--- policy, so an invoker-rights view would count zero rows for the anon key. Definer rights
--- are what let the counts be public while the individual votes stay unreadable — the view
--- exposes only aggregates, never a voter_key. Supabase's linter flags definer views; this
--- one is deliberate.
+-- The view runs with INVOKER rights and the caller is given column-level select on
+-- poll_votes. A definer view would also work, but column grants are the tighter guarantee:
+-- no role can read voter_key at all, rather than relying on the view never exposing it.
+-- count() is over option_id rather than id for the same reason — id is not granted.
 create or replace view public.poll_results as
   select
     o.poll_id,
     o.id       as option_id,
     o.label,
     o.position,
-    count(v.id) as votes
+    count(v.option_id) as votes
   from public.poll_options o
   left join public.poll_votes v
     on v.poll_id = o.poll_id and v.option_id = o.id
   group by o.poll_id, o.id, o.label, o.position;
+
+alter view public.poll_results set (security_invoker = on);
 
 -- ─── Row level security ──────────────────────────────────────────────────────
 
@@ -150,11 +151,26 @@ create policy "public read hof"          on public.hall_of_fame for select using
 create policy "public read polls"        on public.polls        for select using (true);
 create policy "public read poll options" on public.poll_options for select using (true);
 
--- Votes are the single exception: anyone may cast one, nobody may read the raw rows back
--- (the results view is what the site reads), and no one may change or delete a vote.
+-- Votes are the single exception: anyone may cast one, and no one may change or delete one.
 create policy "anyone may vote" on public.poll_votes
   for insert with check (
     exists (select 1 from public.polls p where p.id = poll_id and p.status = 'open')
   );
 
-grant select on public.poll_results to anon, authenticated;
+-- Reading votes is allowed by policy but constrained by column privilege: the tally columns
+-- are readable, voter_key and created_at are not granted to anyone.
+create policy "public read votes" on public.poll_votes for select using (true);
+
+revoke select on public.poll_votes from anon, authenticated;
+grant  select (poll_id, option_id) on public.poll_votes to anon, authenticated;
+grant  select on public.poll_results to anon, authenticated;
+
+-- The helper installed by the project's "Enable automatic RLS" option is exposed as an RPC
+-- endpoint by default; nothing outside the database should be able to call it. Guarded so
+-- this file still runs on a project created without that option.
+do $$
+begin
+  if to_regprocedure('public.rls_auto_enable()') is not null then
+    execute 'revoke execute on function public.rls_auto_enable() from anon, authenticated, public';
+  end if;
+end $$;
