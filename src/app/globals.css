@@ -402,6 +402,24 @@ body {
   text-decoration-thickness: 1px;
 }
 
+/* Ballot option. The accent arrives as --vote-accent from the component, because the
+   colour is per poll type and a :hover rule cannot be written inline. */
+.vote-option:hover:not(:disabled),
+.vote-option:focus-visible {
+  border-color: var(--vote-accent, var(--zone-accent));
+  background: color-mix(in srgb, var(--vote-accent, var(--zone-accent)) 12%, transparent);
+}
+
+.vote-option:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vote-option:active:not(:disabled) {
+    transform: none;
+  }
+}
+
 /* ─── Card & row micro-interactions ─────────────────────────────────────── */
 
 .mission-card,

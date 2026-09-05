@@ -12,7 +12,7 @@ import { SkeletonBlock } from '@/components/ui/SkeletonBlock'
  * track the sheet in near-real-time.
  */
 export function LiveVoteHud() {
-  const { data: polls, loading } = usePolls()
+  const { data: polls, loading, refetch } = usePolls()
 
   if (loading && !polls) {
     return (
@@ -56,7 +56,7 @@ export function LiveVoteHud() {
       <div className="grid md:grid-cols-2 gap-5 mb-20">
         {open.map((poll, i) => (
           <SectionReveal key={poll.id} delay={i * 0.07} className="h-full">
-            <PollCard poll={poll} />
+            <PollCard poll={poll} onVoted={refetch} />
           </SectionReveal>
         ))}
         {open.length === 0 && (
@@ -82,7 +82,7 @@ export function LiveVoteHud() {
           <div className="grid md:grid-cols-2 gap-5">
             {closed.map((poll, i) => (
               <SectionReveal key={poll.id} delay={i * 0.07} className="h-full">
-                <PollCard poll={poll} />
+                <PollCard poll={poll} onVoted={refetch} />
               </SectionReveal>
             ))}
           </div>

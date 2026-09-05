@@ -1,3 +1,19 @@
+/**
+ * The browser talks to Supabase directly when casting a vote, so its origin has to be in
+ * connect-src. Derived from the configured URL rather than hardcoded, and narrowed to the
+ * origin so the policy names one project rather than all of supabase.co. Empty when
+ * Supabase is unconfigured, which leaves the policy exactly as it was.
+ */
+const supabaseOrigin = (() => {
+  try {
+    return process.env.NEXT_PUBLIC_SUPABASE_URL
+      ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).origin
+      : ''
+  } catch {
+    return ''
+  }
+})()
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Remove X-Powered-By header
@@ -52,7 +68,12 @@ const nextConfig = {
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: blob: https:",
               "media-src 'self'",
-              "connect-src 'self' https://docs.google.com https://api.jsonbin.io",
+              [
+                "connect-src 'self' https://docs.google.com https://api.jsonbin.io",
+                supabaseOrigin,
+              ]
+                .filter(Boolean)
+                .join(' '),
               "frame-ancestors 'none'",
               "base-uri 'self'",
             ].join('; '),
