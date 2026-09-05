@@ -67,7 +67,13 @@ export async function generateMetadata({
     return { title: 'Mission not found', robots: { index: false } }
   }
 
-  const title = `${event.event_name} — ${GAME_LABELS[event.game_type]}`
+  // Six of ten events are game_type 'Other' (every workshop), and "Blender Workshop — Other"
+  // is what a browser tab and a search result would read. The qualifier earns its place only
+  // when it names an actual game.
+  const title =
+    event.game_type === 'Other'
+      ? event.event_name
+      : `${event.event_name} — ${GAME_LABELS[event.game_type]}`
   const description =
     event.description ||
     `${event.event_name} — DAG ${event.event_type} on ${formatDate(event.date)}.`
