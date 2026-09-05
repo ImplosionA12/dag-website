@@ -138,7 +138,28 @@ export function rowToEntry(row: Record<string, string>): LeaderboardEntry | null
   }
 }
 
+async function fetchLeaderboardsFromSupabase(): Promise<LeaderboardEntry[]> {
+  const { data, error } = await getSupabase()!
+    .from('leaderboards')
+    .select('id, event_name, season, rank, player_name, points, game_type, team_name')
+    .order('season', { ascending: true })
+    .order('points', { ascending: false })
+
+  if (error) throw new Error(`[feeds/leaderboards] Supabase: ${error.message}`)
+
+  // rowToEntry parses rank and points from strings because the sheet only ever had strings.
+  // Stringifying the integers Postgres returns keeps one validation path for both sources
+  // rather than a second one that could accept rows the sheet path would reject.
+  return (data ?? [])
+    .map(row => rowToEntry(Object.fromEntries(
+      Object.entries(row).map(([k, v]) => [k, v == null ? '' : String(v)])
+    )))
+    .filter((e): e is LeaderboardEntry => e !== null)
+}
+
 export async function fetchLeaderboardsFeed(): Promise<LeaderboardEntry[] | null> {
+  if (usesSupabase('leaderboards')) return fetchLeaderboardsFromSupabase()
+
   const url = resolveSheetUrl(process.env.NEXT_PUBLIC_SHEETS_LEADERBOARDS_URL)
   if (!url) {
     debug.warn('[feeds/leaderboards] No sheet URL configured')
