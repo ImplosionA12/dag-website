@@ -2,7 +2,7 @@ import { csvToObjects } from '@/lib/csv'
 import { debug } from '@/lib/debug'
 import { resolveSheetUrl } from '@/lib/sheets'
 import { getSupabase, usesSupabase, REVALIDATE_SECONDS } from '@/lib/supabase'
-import { Event, EventStatus, EventType, GameType, LeaderboardEntry } from '@/types'
+import { Event, EventStatus, EventType, GameType, HallOfFameEntry, HoFCategory, LeaderboardEntry } from '@/types'
 
 /**
  * Server-side sheet feeds.
@@ -168,4 +168,56 @@ export async function fetchLeaderboardsFeed(): Promise<LeaderboardEntry[] | null
 
   const rows = await fetchRows(url, 'leaderboards')
   return rows.map(rowToEntry).filter((e): e is LeaderboardEntry => e !== null)
+}
+
+// ─── Hall of Fame ────────────────────────────────────────────────────────────
+
+/**
+ * Expected columns (any order):
+ * category | player_name | season | description | game_type
+ *
+ * A row with an empty player_name is "not yet awarded" and is kept deliberately, so all six
+ * categories can still be rendered as placeholders rather than vanishing from the board.
+ */
+export function rowToHofEntry(row: Record<string, string>): HallOfFameEntry | null {
+  if (!row.category) {
+    debug.warn('[feeds/hall-of-fame] Skipping row with missing category:', row)
+    return null
+  }
+
+  return {
+    category:    row.category as HoFCategory,
+    player_name: row.player_name,
+    season:      row.season,
+    description: row.description,
+    game_type:   toGame(row.game_type),
+  }
+}
+
+async function fetchHallOfFameFromSupabase(): Promise<HallOfFameEntry[]> {
+  const { data, error } = await getSupabase()!
+    .from('hall_of_fame')
+    .select('category, player_name, season, description, game_type')
+    .order('season', { ascending: false })
+
+  if (error) throw new Error(`[feeds/hall-of-fame] Supabase: ${error.message}`)
+
+  return (data ?? [])
+    .map(row => rowToHofEntry(Object.fromEntries(
+      Object.entries(row).map(([k, v]) => [k, v == null ? '' : String(v)])
+    )))
+    .filter((e): e is HallOfFameEntry => e !== null)
+}
+
+export async function fetchHallOfFameFeed(): Promise<HallOfFameEntry[] | null> {
+  if (usesSupabase('hall_of_fame')) return fetchHallOfFameFromSupabase()
+
+  const url = resolveSheetUrl(process.env.NEXT_PUBLIC_SHEETS_HOF_URL)
+  if (!url) {
+    debug.warn('[feeds/hall-of-fame] No sheet URL configured')
+    return null
+  }
+
+  const rows = await fetchRows(url, 'hall-of-fame')
+  return rows.map(rowToHofEntry).filter((e): e is HallOfFameEntry => e !== null)
 }
