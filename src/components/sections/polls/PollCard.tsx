@@ -53,12 +53,21 @@ interface PollCardProps {
 export function PollCard({ poll, onVoted }: PollCardProps) {
   const isOpen = poll.status === 'open'
   const accent = TYPE_COLORS[poll.type]
-  const maxVotes = Math.max(...poll.options.map(o => o.votes), 1)
 
   const [votedFor, setVotedFor] = useState<string | null>(null)
   const [pending, setPending] = useState<string | null>(null)
   const [failure, setFailure] = useState<VoteResult | null>(null)
   const [alreadyVoted, setAlreadyVoted] = useState(false)
+  /**
+   * The vote this browser just cast, counted locally until the server's tally catches up.
+   *
+   * The feed is cached for 30 seconds, so a fresh vote is real in the database but absent
+   * from the next response — without this the voter watches their own vote render as
+   * "YOUR VOTE 0% · 0", which reads as a failure rather than a cache.
+   */
+  const [justVoted, setJustVoted] = useState<{ optionId: string; totalBefore: number } | null>(
+    null
+  )
 
   // Read after mount only: localStorage does not exist during SSR, and branching on it
   // during render would make the server and client markup disagree.
@@ -83,12 +92,34 @@ export function PollCard({ poll, onVoted }: PollCardProps) {
       // counted; otherwise the card shows results with no marker rather than the wrong one.
       setVotedFor(result === 'ok' ? optionId : VOTED_CHOICE_UNKNOWN)
       setAlreadyVoted(result === 'already-voted')
+      // Only a vote that actually counted is added locally. A rejected duplicate is already
+      // in the tally, so counting it again would overstate the total by one.
+      if (result === 'ok') {
+        setJustVoted({ optionId, totalBefore: poll.total_voters })
+      }
       onVoted?.()
       return
     }
 
     setFailure(result)
   }
+
+  // Once the server's total moves past what it was when the vote was cast, the real tally
+  // includes it and the local count is dropped.
+  const pendingLocalVote = justVoted && poll.total_voters <= justVoted.totalBefore ? justVoted : null
+
+  const displayTotal = poll.total_voters + (pendingLocalVote ? 1 : 0)
+
+  const displayOptions = poll.options.map(option => {
+    const votes = option.votes + (pendingLocalVote?.optionId === option.id ? 1 : 0)
+    return {
+      ...option,
+      votes,
+      percentage: displayTotal > 0 ? Math.round((votes / displayTotal) * 100) : 0,
+    }
+  })
+
+  const maxDisplayVotes = Math.max(...displayOptions.map(o => o.votes), 1)
 
   const showBallot = isOpen && votedFor === null
 
@@ -136,8 +167,8 @@ export function PollCard({ poll, onVoted }: PollCardProps) {
           />
         ) : (
           <div className="grid gap-4">
-            {poll.options.map((option, i) => {
-              const isLeader = option.votes === maxVotes && option.votes > 0
+            {displayOptions.map((option, i) => {
+              const isLeader = option.votes === maxDisplayVotes && option.votes > 0
               // Gold only when the poll is decided — the winner's victory moment
               const barColor = isLeader
                 ? isOpen
@@ -167,7 +198,7 @@ export function PollCard({ poll, onVoted }: PollCardProps) {
         {/* Footer */}
         <div className="mt-auto flex items-center justify-between gap-4 flex-wrap pt-2">
           <span className="type-label" style={{ color: 'var(--text-lo)' }}>
-            {poll.total_voters} VOTER{poll.total_voters !== 1 ? 'S' : ''}
+            {displayTotal} VOTER{displayTotal !== 1 ? 'S' : ''}
             {poll.ends_at && isOpen && ` // ENDS ${formatEndsAt(poll.ends_at).toUpperCase()}`}
             {!isOpen && ' // POLL CLOSED'}
           </span>
