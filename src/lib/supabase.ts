@@ -18,16 +18,25 @@ export type FeedName = 'events' | 'leaderboards' | 'hall_of_fame' | 'polls'
 /** Shared freshness window. The sheet path uses the same value in fetchRows. */
 export const REVALIDATE_SECONDS = 60
 
-let client: SupabaseClient | null | undefined
+/**
+ * Polls refresh twice as often as the other feeds, which is what the sheet path did before
+ * the port. Vote counts are the one thing on the site that changes while someone is looking
+ * at it, so a minute-old tally reads as broken in a way a minute-old event list does not.
+ */
+export const POLLS_REVALIDATE_SECONDS = 30
+
+/** One client per freshness window; building a client per request would drop connections. */
+const clients = new Map<number, SupabaseClient | null>()
 
 /** Null when unconfigured — callers treat that as "not available", never as an error. */
-export function getSupabase(): SupabaseClient | null {
-  if (client !== undefined) return client
+export function getSupabase(revalidate: number = REVALIDATE_SECONDS): SupabaseClient | null {
+  const cached = clients.get(revalidate)
+  if (cached !== undefined) return cached
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()
 
-  client =
+  const client =
     url && key
       ? createClient(url, key, {
           auth: { persistSession: false },
@@ -47,10 +56,12 @@ export function getSupabase(): SupabaseClient | null {
              * contract, so moving a feed changes where data comes from and nothing else.
              */
             fetch: (input, init) =>
-              fetch(input, { ...init, next: { revalidate: REVALIDATE_SECONDS } }),
+              fetch(input, { ...init, next: { revalidate } }),
           },
         })
       : null
+
+  clients.set(revalidate, client)
   return client
 }
 

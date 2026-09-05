@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { Poll, PollsResponse } from '@/types/polls'
 import { resolveSheetUrl } from '@/lib/sheets'
+import { fetchPollsFeed } from '@/lib/feeds'
 
 const MOCK_POLLS: Poll[] = [
   {
@@ -60,9 +61,17 @@ const MOCK_POLLS: Poll[] = [
  * build and never again. fetchRows sets the same value on the sheet fetch; stating it here
  * too means a route stays fresh regardless of which source it reads.
  */
-export const revalidate = 60
+export const revalidate = 30
 
 export async function GET() {
+  // Supabase is the only source that can hold real votes, so it wins outright when enabled.
+  // A failure here is not swallowed into the mock polls: serving invented vote counts while
+  // the real tally is unreachable would misreport a result, which is worse than an error.
+  const fromSupabase = await fetchPollsFeed()
+  if (fromSupabase) {
+    return NextResponse.json({ polls: fromSupabase } satisfies PollsResponse)
+  }
+
   const url = resolveSheetUrl(process.env.NEXT_PUBLIC_SHEETS_POLLS_URL)
 
   if (!url) {

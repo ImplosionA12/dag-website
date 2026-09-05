@@ -1,8 +1,9 @@
 import { csvToObjects } from '@/lib/csv'
 import { debug } from '@/lib/debug'
 import { resolveSheetUrl } from '@/lib/sheets'
-import { getSupabase, usesSupabase, REVALIDATE_SECONDS } from '@/lib/supabase'
+import { getSupabase, usesSupabase, REVALIDATE_SECONDS, POLLS_REVALIDATE_SECONDS } from '@/lib/supabase'
 import { Event, EventStatus, EventType, GameType, HallOfFameEntry, HoFCategory, LeaderboardEntry } from '@/types'
+import { Poll, PollStatus, PollType } from '@/types/polls'
 
 /**
  * Server-side sheet feeds.
@@ -220,4 +221,70 @@ export async function fetchHallOfFameFeed(): Promise<HallOfFameEntry[] | null> {
 
   const rows = await fetchRows(url, 'hall-of-fame')
   return rows.map(rowToHofEntry).filter((e): e is HallOfFameEntry => e !== null)
+}
+
+// ─── Polls ───────────────────────────────────────────────────────────────────
+
+/**
+ * Polls are the one feed with no sheet behind it — the route has always served hardcoded
+ * mock data, because a CSV export cannot accept a vote. Supabase is what makes the real
+ * thing possible, so this reads options and tallies from the database.
+ *
+ * Counts come from the poll_results view rather than the vote rows: individual votes are not
+ * readable (voter_key is not granted to any role), and counting in Postgres avoids shipping
+ * one row per vote to the app just to length-check it.
+ */
+async function fetchPollsFromSupabase(): Promise<Poll[]> {
+  const supabase = getSupabase(POLLS_REVALIDATE_SECONDS)!
+
+  const [pollsRes, resultsRes] = await Promise.all([
+    supabase
+      .from('polls')
+      .select('id, type, title, description, season, status, ends_at, form_url')
+      .order('created_at', { ascending: true }),
+    supabase
+      .from('poll_results')
+      .select('poll_id, option_id, label, position, votes'),
+  ])
+
+  if (pollsRes.error) throw new Error(`[feeds/polls] Supabase: ${pollsRes.error.message}`)
+  if (resultsRes.error) throw new Error(`[feeds/polls] Supabase: ${resultsRes.error.message}`)
+
+  const results = resultsRes.data ?? []
+
+  return (pollsRes.data ?? []).map(poll => {
+    const rows = results
+      .filter(r => r.poll_id === poll.id)
+      .sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
+
+    const votes = rows.map(r => Number(r.votes) || 0)
+    const total = votes.reduce((sum, v) => sum + v, 0)
+
+    return {
+      id:      poll.id,
+      type:    poll.type as PollType,
+      title:   poll.title,
+      description: poll.description ?? undefined,
+      season:  poll.season,
+      status:  poll.status as PollStatus,
+      ends_at: poll.ends_at ?? undefined,
+      form_url: poll.form_url ?? undefined,
+      // A poll with no votes yet gets zeroes rather than a division by zero.
+      options: rows.map((r, i) => ({
+        id:    r.option_id,
+        label: r.label,
+        votes: votes[i],
+        percentage: total > 0 ? Math.round((votes[i] / total) * 100) : 0,
+      })),
+      // Every voter casts one vote per poll (unique on poll_id + voter_key), so the vote
+      // total and the voter count are the same number.
+      total_voters: total,
+    } satisfies Poll
+  })
+}
+
+/** Null means "not on Supabase" — the route then falls back to its mock polls as before. */
+export async function fetchPollsFeed(): Promise<Poll[] | null> {
+  if (!usesSupabase('polls')) return null
+  return fetchPollsFromSupabase()
 }
