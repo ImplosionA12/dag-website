@@ -43,13 +43,17 @@ export async function generateStaticParams() {
   }
 }
 
+/**
+ * Feed failures deliberately propagate rather than resolving to null.
+ *
+ * null here means notFound(), and swallowing the error conflated "this event does not
+ * exist" with "the sheet did not answer just now" — during an ISR revalidation that turned
+ * a live dossier into a cached 404 (observed in production on /events/cyber-tournament,
+ * cache=STALE). Letting it throw makes Next keep serving the last good page instead.
+ */
 async function getEvent(slug: string): Promise<Event | null> {
-  try {
-    const events = await fetchEventsFeed()
-    return events ? findEventBySlug(events, slug) : null
-  } catch {
-    return null
-  }
+  const events = await fetchEventsFeed()
+  return events ? findEventBySlug(events, slug) : null
 }
 
 export async function generateMetadata({
@@ -83,10 +87,11 @@ export default async function EventDetailPage({ params }: { params: { slug: stri
 
   if (!event) notFound()
 
-  // Standings are a bonus, never a blocker — a dead leaderboard feed must not 500 a dossier.
-  const standings = await fetchLeaderboardsFeed()
-    .then(entries => (entries ? standingsForEvent(entries, event) : []))
-    .catch(() => [])
+  // An unset leaderboard feed is a normal empty state; a failing one is not. Catching here
+  // would let a revalidation regenerate the page with the standings silently missing and
+  // cache that — the same class of bug as the 404 above, just quieter.
+  const entries = await fetchLeaderboardsFeed()
+  const standings = entries ? standingsForEvent(entries, event) : []
 
   const accent = GAME_COLORS[event.game_type]
   const isCompleted = event.status === 'completed'
