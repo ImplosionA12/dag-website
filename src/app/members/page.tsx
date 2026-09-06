@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { RosterGrid } from '@/components/sections/members/RosterGrid'
 import { ZoneHero } from '@/components/ui/ZoneHero'
+import { fetchMembersFeed } from '@/lib/feeds'
 
 export const metadata: Metadata = {
   title: 'Members — The Roster',
@@ -17,7 +18,14 @@ export const metadata: Metadata = {
   },
 }
 
-export default function MembersPage() {
+/** Matches the other feeds, so a roster edit is live within a minute. */
+export const revalidate = 60
+
+export default async function MembersPage() {
+  // An unavailable roster shows the standby empty state rather than failing the page — the
+  // rest of the zone (hero, copy) is still worth rendering.
+  const members = await fetchMembersFeed().catch(() => null)
+
   return (
     <div
       data-zone="members"
@@ -36,7 +44,7 @@ export default function MembersPage() {
         outlineLines={[1]}
         copy="The core team running the arena — players, creators, and the people behind both wings."
       />
-      <RosterGrid />
+      <RosterGrid members={members ?? []} />
     </div>
   )
 }

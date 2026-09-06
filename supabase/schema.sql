@@ -66,6 +66,32 @@ create table if not exists public.hall_of_fame (
   unique (category, season)
 );
 
+-- ─── Members ─────────────────────────────────────────────────────────────────
+
+-- The roster used to be a hardcoded array in the repo, so every committee change was a code
+-- edit and a deploy. It is club data that turns over every year; no developer should be a
+-- bottleneck for it.
+create table if not exists public.members (
+  id           bigint generated always as identity primary key,
+  name         text        not null,
+  role         text        not null,
+  games        text[]      not null default '{}',
+  is_founder   boolean     not null default false,
+  is_president boolean     not null default false,
+  note         text,
+  instagram    text,
+  discord      text,
+  -- Explicit ordering so the roster is arranged by the club, not by insertion order.
+  position     integer     not null default 0,
+  created_at   timestamptz not null default now(),
+  unique (name),
+  constraint members_games_valid check (
+    games <@ array['FF', 'BGMI', 'Valorant', 'Anime', 'Other']::text[]
+  )
+);
+
+create index if not exists members_position_idx on public.members (position, name);
+
 -- ─── Polls ───────────────────────────────────────────────────────────────────
 
 create table if not exists public.polls (
@@ -134,6 +160,7 @@ alter table public.hall_of_fame  enable row level security;
 alter table public.polls         enable row level security;
 alter table public.poll_options  enable row level security;
 alter table public.poll_votes    enable row level security;
+alter table public.members       enable row level security;
 
 -- CREATE POLICY has no IF NOT EXISTS, so drop first to keep this file re-runnable.
 drop policy if exists "public read events"       on public.events;
@@ -142,6 +169,7 @@ drop policy if exists "public read hof"          on public.hall_of_fame;
 drop policy if exists "public read polls"        on public.polls;
 drop policy if exists "public read poll options" on public.poll_options;
 drop policy if exists "anyone may vote"          on public.poll_votes;
+drop policy if exists "public read members"      on public.members;
 
 -- Public read. Writes are absent by design: with RLS on and no write policy, the anon key
 -- cannot insert, update or delete regardless of what the client asks for.
@@ -150,6 +178,7 @@ create policy "public read leaderboards" on public.leaderboards for select using
 create policy "public read hof"          on public.hall_of_fame for select using (true);
 create policy "public read polls"        on public.polls        for select using (true);
 create policy "public read poll options" on public.poll_options for select using (true);
+create policy "public read members"      on public.members      for select using (true);
 
 -- Votes are the single exception: anyone may cast one, and no one may change or delete one.
 create policy "anyone may vote" on public.poll_votes

@@ -59,11 +59,28 @@ src/
     sections/          home/ events/ leaderboards/ hall-of-fame/ members/ about/ polls/
   lib/motion/          gsap.ts, lenis.ts, easing.ts
   lib/csv.ts           CSV parsing
-  config/data.ts       DATA_CONFIG · data/members.ts · types/index.ts (HOF_CATEGORIES)
+  lib/feeds.ts         server-side feeds (events, leaderboards, hof, polls, members)
+  lib/supabase.ts      client + per-feed source switch · lib/vote.ts client vote casting
+  config/data.ts       DATA_CONFIG · types/index.ts (HOF_CATEGORIES)
 ```
 
 ## Data architecture
-- Google Sheet → CSV export URL → API route (parses via `lib/csv.ts`) → hook → page.
+- **Supabase is the source of truth** (project `dag-website`, ref `shuorrkfajxivdhgaylt`).
+  All feeds — events, leaderboards, hall of fame, polls, members — read Postgres.
+  Schema and a regenerable seed live in `supabase/`.
+- `NEXT_PUBLIC_SUPABASE_FEEDS` is a comma list of feeds on Supabase. Removing a name rolls
+  that feed back to its Google Sheet; the sheets are kept as the rollback path. These are
+  `NEXT_PUBLIC_` vars, so any change needs a **rebuild**, not just an env edit.
+- No source falls back to another. A feed reads one source and fails loudly, so a broken
+  migration cannot hide behind correct-looking data.
+- Anything reading Supabase **must** declare `revalidate` — supabase-js sends no Next cache
+  hint, so a static route would otherwise freeze at build time and never show an edit.
+- **Never hardcode club data.** Members used to live in `src/data/members.ts`; it is now a
+  table, because committee turnover should not need a deploy.
+- `npm run backup` rewrites `supabase/seed.sql` from the live database. The free tier takes
+  no backups, so the repo is the backup.
+- Legacy path (still supported per feed): Google Sheet → CSV export URL → API route
+  (parses via `lib/csv.ts`) → hook → page.
 - Hooks: `useEvents` / `useLeaderboards` / `useHallOfFame` (FetchState + refetch), `usePolls` (30s auto-poll).
 - When env vars are empty, the site falls back to mock/empty data and renders `EmptyState`
   ("NO DATA // STANDBY") / `ErrorState` ("SIGNAL LOST"). This is intentional — builds must still succeed

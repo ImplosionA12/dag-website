@@ -4,6 +4,7 @@ import { resolveSheetUrl } from '@/lib/sheets'
 import { getSupabase, usesSupabase, REVALIDATE_SECONDS, POLLS_REVALIDATE_SECONDS } from '@/lib/supabase'
 import { Event, EventStatus, EventType, GameType, HallOfFameEntry, HoFCategory, LeaderboardEntry } from '@/types'
 import { Poll, PollStatus, PollType } from '@/types/polls'
+import { Member } from '@/types'
 
 /**
  * Server-side sheet feeds.
@@ -287,4 +288,46 @@ async function fetchPollsFromSupabase(): Promise<Poll[]> {
 export async function fetchPollsFeed(): Promise<Poll[] | null> {
   if (!usesSupabase('polls')) return null
   return fetchPollsFromSupabase()
+}
+
+// ─── Members ─────────────────────────────────────────────────────────────────
+
+/**
+ * The roster lives in the database, not in the repo.
+ *
+ * It used to be a hardcoded array, which meant every committee change was a code edit and a
+ * deploy — for data that turns over every year and that no developer should be a bottleneck
+ * for. There is no sheet behind it and never was, so there is no feed switch either:
+ * Supabase is the only source, and an unconfigured site renders an empty roster rather than
+ * a stale one baked in at build time.
+ */
+export async function fetchMembersFeed(): Promise<Member[] | null> {
+  const supabase = getSupabase()
+  if (!supabase) {
+    debug.warn('[feeds/members] Supabase not configured')
+    return null
+  }
+
+  const { data, error } = await supabase
+    .from('members')
+    .select('name, role, games, is_founder, is_president, note, instagram, discord, position')
+    .order('position', { ascending: true })
+    .order('name', { ascending: true })
+
+  if (error) throw new Error(`[feeds/members] Supabase: ${error.message}`)
+
+  return (data ?? []).map(row => ({
+    name:        row.name,
+    role:        row.role,
+    games:       (row.games ?? []).filter((g: string) => GAMES.includes(g as GameType)) as GameType[],
+    isFounder:   Boolean(row.is_founder),
+    isPresident: Boolean(row.is_president),
+    note:        row.note ?? undefined,
+    // Omitted entirely when neither handle is set, so the card does not render an empty
+    // socials row for a member who has none.
+    socials:
+      row.instagram || row.discord
+        ? { instagram: row.instagram ?? undefined, discord: row.discord ?? undefined }
+        : undefined,
+  }))
 }
