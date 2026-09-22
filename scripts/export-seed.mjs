@@ -15,11 +15,18 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 
 function env(key) {
+  if (process.env[key]) return process.env[key]
   // .env.local is not loaded outside Next, so read it directly rather than depending on a
-  // library just for this script.
-  const file = readFileSync('.env.local', 'utf8')
+  // library just for this script. The nightly backup job has no .env.local and passes the
+  // values as environment variables instead.
+  let file = ''
+  try {
+    file = readFileSync('.env.local', 'utf8')
+  } catch {
+    return ''
+  }
   const match = file.match(new RegExp(`^${key}=(.*)$`, 'm'))
-  return process.env[key] || (match ? match[1].trim() : '')
+  return match ? match[1].trim() : ''
 }
 
 const URL_BASE = env('NEXT_PUBLIC_SUPABASE_URL')
@@ -56,13 +63,14 @@ function block(comment, columns, rows, values, conflict, updates) {
   ].join('\n')
 }
 
-const [events, leaderboards, hof, polls, options, members] = await Promise.all([
+const [events, leaderboards, hof, polls, options, members, contributors] = await Promise.all([
   table('events', '&order=id'),
   table('leaderboards', '&order=id'),
   table('hall_of_fame', '&order=category'),
   table('polls', '&order=created_at'),
   table('poll_options', '&order=poll_id,position'),
   table('members', '&order=position'),
+  table('contributors', '&order=position'),
 ])
 
 const out = [
@@ -107,5 +115,5 @@ const out = [
 writeFileSync('supabase/seed.sql', out)
 console.log(
   `seed.sql written — events ${events.length}, leaderboards ${leaderboards.length}, ` +
-    `hall_of_fame ${hof.length}, polls ${polls.length}, options ${options.length}, members ${members.length}`
+    `hall_of_fame ${hof.length}, polls ${polls.length}, options ${options.length}, members ${members.length}, contributors ${contributors.length}`
 )

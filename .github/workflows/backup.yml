@@ -1,0 +1,43 @@
+# Nightly snapshot of the live database into supabase/seed.sql.
+#
+# Two jobs in one:
+#   * Backup. The free tier keeps no backups. Every night's state lands in git history, so
+#     any past day can be restored by checking out that day's seed.sql and running it.
+#   * Keep-alive. Free projects pause after a week without database activity, which took the
+#     site's database offline once already. A nightly read is activity.
+#
+# Commits only when the data actually changed.
+name: nightly backup
+
+on:
+  schedule:
+    - cron: '30 20 * * *' # 02:00 IST
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm run backup
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      - name: Commit if the data changed
+        run: |
+          # The header line carries today's date, so ignore it when deciding if anything changed.
+          if git diff -U0 supabase/seed.sql | grep '^[+-][^+-]' | grep -qv 'exported from the live database'; then
+            git config user.name  "dag-backup-bot"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add supabase/seed.sql
+            git commit -m "Nightly backup of the live database"
+            git push
+          else
+            echo "No data changes since the last backup."
+          fi

@@ -1,5 +1,5 @@
 -- DAG website schema
--- Run this in the Supabase SQL editor, then run seed.sql. Both files are re-runnable.
+-- Run this in the Supabase SQL editor, then audit.sql, then seed.sql. All three are re-runnable.
 --
 -- Design notes:
 --   * Every table is world-readable. The site has no login and the data is already public
@@ -92,6 +92,23 @@ create table if not exists public.members (
 
 create index if not exists members_position_idx on public.members (position, name);
 
+-- ─── Contributors ────────────────────────────────────────────────────────────
+
+-- The people who build and run this site, credited on the About page. Kept apart from
+-- members because the web crew is not always on the committee, and a credit should not
+-- need a committee role to exist.
+create table if not exists public.contributors (
+  id           bigint generated always as identity primary key,
+  name         text        not null,
+  -- What they did, in a few words: "Events page", "Data entry, S1 results".
+  contribution text        not null,
+  -- GitHub username only, not a URL.
+  github       text,
+  position     integer     not null default 0,
+  created_at   timestamptz not null default now(),
+  unique (name)
+);
+
 -- ─── Polls ───────────────────────────────────────────────────────────────────
 
 create table if not exists public.polls (
@@ -161,6 +178,7 @@ alter table public.polls         enable row level security;
 alter table public.poll_options  enable row level security;
 alter table public.poll_votes    enable row level security;
 alter table public.members       enable row level security;
+alter table public.contributors  enable row level security;
 
 -- CREATE POLICY has no IF NOT EXISTS, so drop first to keep this file re-runnable.
 drop policy if exists "public read events"       on public.events;
@@ -170,6 +188,7 @@ drop policy if exists "public read polls"        on public.polls;
 drop policy if exists "public read poll options" on public.poll_options;
 drop policy if exists "anyone may vote"          on public.poll_votes;
 drop policy if exists "public read members"      on public.members;
+drop policy if exists "public read contributors" on public.contributors;
 
 -- Public read. Writes are absent by design: with RLS on and no write policy, the anon key
 -- cannot insert, update or delete regardless of what the client asks for.
@@ -179,6 +198,7 @@ create policy "public read hof"          on public.hall_of_fame for select using
 create policy "public read polls"        on public.polls        for select using (true);
 create policy "public read poll options" on public.poll_options for select using (true);
 create policy "public read members"      on public.members      for select using (true);
+create policy "public read contributors" on public.contributors for select using (true);
 
 -- Votes are the single exception: anyone may cast one, and no one may change or delete one.
 create policy "anyone may vote" on public.poll_votes

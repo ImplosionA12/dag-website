@@ -62,6 +62,7 @@ src/
   lib/feeds.ts         server-side feeds (events, leaderboards, hof, polls, members)
   lib/supabase.ts      client + per-feed source switch · lib/vote.ts client vote casting
   config/data.ts       DATA_CONFIG · types/index.ts (HOF_CATEGORIES)
+supabase/              schema.sql → audit.sql → seed.sql (run in that order)
 ```
 
 ## Data architecture
@@ -78,7 +79,14 @@ src/
 - **Never hardcode club data.** Members used to live in `src/data/members.ts`; it is now a
   table, because committee turnover should not need a deploy.
 - `npm run backup` rewrites `supabase/seed.sql` from the live database. The free tier takes
-  no backups, so the repo is the backup.
+  no backups, so the repo is the backup. `.github/workflows/backup.yml` runs it nightly and
+  commits changes; that daily read also stops the free project pausing for inactivity.
+- **Undo history:** `supabase/audit.sql` logs every row change on club tables into
+  `audit.changes`. Undo with `audit.undo_last(n)` / `audit.undo_since(ts)` in the SQL editor.
+  Any new club table must be added to the trigger list there. All FKs are DEFERRABLE so undo
+  can restore children before parents.
+- Juniors work directly on live data and push to `master`; `CONTRIBUTING.md` is their guide.
+  `contributors` table feeds the About page crew credits.
 - Legacy path (still supported per feed): Google Sheet → CSV export URL → API route
   (parses via `lib/csv.ts`) → hook → page.
 - Hooks: `useEvents` / `useLeaderboards` / `useHallOfFame` (FetchState + refetch), `usePolls` (30s auto-poll).

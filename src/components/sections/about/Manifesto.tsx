@@ -1,6 +1,6 @@
 'use client'
 
-import { GameType } from '@/types'
+import { Contributor, GameType } from '@/types'
 import { GAME_COLORS, GAME_LABELS } from '@/lib/utils'
 import { HudLabel } from '@/components/ui/HudLabel'
 import { SectionReveal } from '@/components/ui/SectionReveal'
@@ -50,10 +50,17 @@ function Chapter({ index, label, children }: ChapterProps) {
   )
 }
 
+interface ManifestoProps {
+  /** The web crew. Empty or absent drops the chapter rather than showing an empty one. */
+  contributors?: Contributor[]
+}
+
 /**
  * The lore page — chaptered manifesto scroll.
  */
-export function Manifesto() {
+export function Manifesto({ contributors = [] }: ManifestoProps) {
+  const hasCrew = contributors.length > 0
+
   return (
     <div>
       <Chapter index="01" label="// ORIGIN">
@@ -135,7 +142,46 @@ export function Manifesto() {
         </SectionReveal>
       </Chapter>
 
-      <Chapter index="04" label="// JOIN">
+      {hasCrew && (
+        <Chapter index="04" label="// THE CREW">
+          <SectionReveal>
+            <DisplayHeading lines={['BUILT BY', 'THE CLUB']} scale="h2" className="mb-8" />
+            <p className="type-body mb-10 max-w-xl" style={{ color: 'var(--text-mid)' }}>
+              No agency, no template. This site is designed, coded and run by DAG members.
+            </p>
+            <ul className="grid sm:grid-cols-2 gap-x-10 gap-y-6 max-w-2xl list-none">
+              {contributors.map((person, i) => (
+                <li key={person.name} className="grid grid-cols-[auto_1fr] gap-4 items-baseline">
+                  <span className="type-hud" style={{ color: 'var(--zone-accent)' }}>
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <div>
+                    <p className="type-h3 mb-1" style={{ color: 'var(--text-hi)', fontSize: '1.05rem' }}>
+                      {person.github ? (
+                        <a
+                          href={`https://github.com/${person.github}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:underline underline-offset-4"
+                        >
+                          {person.name.toUpperCase()}
+                        </a>
+                      ) : (
+                        person.name.toUpperCase()
+                      )}
+                    </p>
+                    <p className="type-body" style={{ color: 'var(--text-mid)', fontSize: '0.88rem' }}>
+                      {person.contribution}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </SectionReveal>
+        </Chapter>
+      )}
+
+      <Chapter index={hasCrew ? '05' : '04'} label="// JOIN">
         <SectionReveal>
           <DisplayHeading
             lines={['YOUR SLOT IS', 'STILL OPEN']}

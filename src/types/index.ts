@@ -61,6 +61,14 @@ export interface Member {
   }
 }
 
+/** Someone who built or runs this site — credited on the About page. */
+export interface Contributor {
+  name: string
+  contribution: string
+  /** GitHub username, not a URL. */
+  github?: string
+}
+
 // ─── API Response Types ──────────────────────────────────────────────────────
 
 export interface EventsResponse {

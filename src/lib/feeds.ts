@@ -4,7 +4,7 @@ import { resolveSheetUrl } from '@/lib/sheets'
 import { getSupabase, usesSupabase, REVALIDATE_SECONDS, POLLS_REVALIDATE_SECONDS } from '@/lib/supabase'
 import { Event, EventStatus, EventType, GameType, HallOfFameEntry, HoFCategory, LeaderboardEntry } from '@/types'
 import { Poll, PollStatus, PollType } from '@/types/polls'
-import { Member } from '@/types'
+import { Contributor, Member } from '@/types'
 
 /**
  * Server-side sheet feeds.
@@ -329,5 +329,34 @@ export async function fetchMembersFeed(): Promise<Member[] | null> {
       row.instagram || row.discord
         ? { instagram: row.instagram ?? undefined, discord: row.discord ?? undefined }
         : undefined,
+  }))
+}
+
+// ─── Contributors ────────────────────────────────────────────────────────────
+
+/**
+ * The web crew credited on the About page. Supabase-only, like the roster: adding someone is
+ * a row in Studio, not a deploy.
+ */
+export async function fetchContributorsFeed(): Promise<Contributor[] | null> {
+  const supabase = getSupabase()
+  if (!supabase) {
+    debug.warn('[feeds/contributors] Supabase not configured')
+    return null
+  }
+
+  const { data, error } = await supabase
+    .from('contributors')
+    .select('name, contribution, github, position')
+    .order('position', { ascending: true })
+    .order('name', { ascending: true })
+
+  if (error) throw new Error(`[feeds/contributors] Supabase: ${error.message}`)
+
+  return (data ?? []).map(row => ({
+    name:         row.name,
+    contribution: row.contribution,
+    // Stored as a bare username; tolerate someone pasting "@name" or a full profile URL.
+    github:       row.github?.replace(/^.*github\.com\//i, '').replace(/^@/, '').replace(/\/+$/, '') || undefined,
   }))
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Manifesto } from '@/components/sections/about/Manifesto'
 import { ZoneHero } from '@/components/ui/ZoneHero'
+import { fetchContributorsFeed } from '@/lib/feeds'
 
 export const metadata: Metadata = {
   title: 'About — The Lore',
@@ -17,7 +18,13 @@ export const metadata: Metadata = {
   },
 }
 
-export default function AboutPage() {
+/** The crew list reads Supabase, which carries no cache hint of its own. */
+export const revalidate = 60
+
+export default async function AboutPage() {
+  // The crew is a credit, not the point of the page: if it cannot load, the lore still renders.
+  const contributors = await fetchContributorsFeed().catch(() => null)
+
   return (
     <div
       data-zone="about"
@@ -36,7 +43,7 @@ export default function AboutPage() {
         outlineLines={[1]}
         copy="Where gaming meets animation — and why we built an arena for both."
       />
-      <Manifesto />
+      <Manifesto contributors={contributors ?? []} />
     </div>
   )
 }
