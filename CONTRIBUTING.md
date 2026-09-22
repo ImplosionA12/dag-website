@@ -49,6 +49,7 @@ If a save fails, read the error. It'll name the column that's wrong.
 ### One-time setup
 
 ```bash
+# Needs Node 24 (nodejs.org). Older versions cannot read the test config.
 git clone https://github.com/ImplosionA12/dag-website.git
 cd dag-website
 npm install
