@@ -45,7 +45,7 @@ export function SeasonStats() {
             <StatCounter value={seasons} label="SEASONS" />
           </SectionReveal>
           <SectionReveal delay={0.24}>
-            <StatCounter value={champions} label="CHAMPIONS CROWNED" />
+            <StatCounter value={champions} label="EVENT WINNERS" />
           </SectionReveal>
         </div>
       </div>

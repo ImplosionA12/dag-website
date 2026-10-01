@@ -19,7 +19,8 @@ const RING_RADIUS = 2.7
 const RING_SPREAD = 0.4
 const DUST_SPREAD = 11
 const SCATTER_SPREAD = 26
-const GOLD_RATIO = 0.035
+/** Rare bright sparks in the ring. White-violet, not gold — gold is victory only. */
+const SPARK_RATIO = 0.035
 const POINTER_LERP = 0.05
 /** The local bloom tracks the cursor far more tightly than the field parallax. */
 const POINTER_LERP_FAST = 0.18
@@ -29,7 +30,7 @@ const CAMERA_FOV = 60
 const VERTEX_SHADER = /* glsl */ `
   attribute vec3 aStart;
   attribute vec3 aTarget;
-  attribute float aGold;
+  attribute float aSpark;
   attribute float aSize;
   attribute vec3 aSeed;
 
@@ -42,7 +43,7 @@ const VERTEX_SHADER = /* glsl */ `
   uniform float uCamZ;
   uniform float uBloom;
 
-  varying float vGold;
+  varying float vSpark;
   varying float vFade;
   varying float vGlow;
 
@@ -51,7 +52,7 @@ const VERTEX_SHADER = /* glsl */ `
   const float POINTER_PUSH = 0.5;
 
   void main() {
-    vGold = aGold;
+    vSpark = aSpark;
 
     // Staggered assembly — each particle resolves on its own offset
     float t = clamp(uAssembly * 1.5 - aSeed.x * 0.5, 0.0, 1.0);
@@ -84,14 +85,14 @@ const VERTEX_SHADER = /* glsl */ `
     gl_Position = projectionMatrix * mv;
     // Small, crisp sprites — at camera z≈7 this lands around 1.5–5px.
     // Anything larger turns the additive field into an overexposed blob.
-    gl_PointSize = aSize * (1.0 + aGold * 0.7 + infl * 1.4) * (22.0 / -mv.z);
+    gl_PointSize = aSize * (1.0 + aSpark * 0.7 + infl * 1.4) * (22.0 / -mv.z);
 
     vFade = (0.25 + 0.45 * aSeed.z) * (1.0 - uScroll * 0.85);
   }
 `
 
 const FRAGMENT_SHADER = /* glsl */ `
-  varying float vGold;
+  varying float vSpark;
   varying float vFade;
   varying float vGlow;
 
@@ -102,12 +103,12 @@ const FRAGMENT_SHADER = /* glsl */ `
 
     vec3 deep   = vec3(0.290, 0.102, 0.478);
     vec3 violet = vec3(0.616, 0.306, 0.867);
-    vec3 gold   = vec3(1.000, 0.718, 0.012);
+    vec3 spark  = vec3(0.949, 0.933, 0.973);
     // The bloom brightens toward light violet, never gold — gold is victory only.
     vec3 charge = vec3(0.855, 0.663, 1.000);
 
     vec3 col = mix(deep, violet, vFade);
-    col = mix(col, gold, vGold);
+    col = mix(col, spark, vSpark);
     col = mix(col, charge, vGlow * 0.85);
     alpha = min(alpha * (1.0 + vGlow * 1.8), 1.0);
     gl_FragColor = vec4(col, alpha);
@@ -117,7 +118,7 @@ const FRAGMENT_SHADER = /* glsl */ `
 function buildAttributes() {
   const start = new Float32Array(PARTICLE_COUNT * 3)
   const target = new Float32Array(PARTICLE_COUNT * 3)
-  const gold = new Float32Array(PARTICLE_COUNT)
+  const spark = new Float32Array(PARTICLE_COUNT)
   const size = new Float32Array(PARTICLE_COUNT)
   const seed = new Float32Array(PARTICLE_COUNT * 3)
 
@@ -152,14 +153,14 @@ function buildAttributes() {
       target[i * 3 + 2] = (Math.random() - 0.5) * DUST_SPREAD * 0.5 - 1
     }
 
-    gold[i] = Math.random() < GOLD_RATIO ? 1 : 0
+    spark[i] = Math.random() < SPARK_RATIO ? 1 : 0
     size[i] = 0.5 + Math.random() * 1.1
     seed[i * 3] = Math.random()
     seed[i * 3 + 1] = Math.random()
     seed[i * 3 + 2] = Math.random()
   }
 
-  return { start, target, gold, size, seed }
+  return { start, target, spark, size, seed }
 }
 
 export default function TitleField() {
@@ -188,14 +189,14 @@ export default function TitleField() {
       const camera = new THREE.PerspectiveCamera(CAMERA_FOV, 1, 0.1, 100)
       camera.position.z = CAMERA_Z
 
-      const { start, target, gold, size, seed } = buildAttributes()
+      const { start, target, spark, size, seed } = buildAttributes()
 
       geometry = new THREE.BufferGeometry()
       // position attribute is required by three even though the shader ignores it
       geometry.setAttribute('position', new THREE.BufferAttribute(target, 3))
       geometry.setAttribute('aStart', new THREE.BufferAttribute(start, 3))
       geometry.setAttribute('aTarget', new THREE.BufferAttribute(target, 3))
-      geometry.setAttribute('aGold', new THREE.BufferAttribute(gold, 1))
+      geometry.setAttribute('aSpark', new THREE.BufferAttribute(spark, 1))
       geometry.setAttribute('aSize', new THREE.BufferAttribute(size, 1))
       geometry.setAttribute('aSeed', new THREE.BufferAttribute(seed, 3))
 

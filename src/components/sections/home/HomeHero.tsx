@@ -2,7 +2,7 @@
 
 import { useRef } from 'react'
 import dynamic from 'next/dynamic'
-import { motion, useScroll, useTransform } from 'framer-motion'
+import { motion, useMotionValue, useScroll, useTransform } from 'framer-motion'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { ScrambleText } from '@/components/cinematic/ScrambleText'
 import { CTAButton } from '@/components/ui/CTAButton'
@@ -39,6 +39,13 @@ export function HomeHero() {
   })
   const contentY = useTransform(scrollYProgress, [0, 1], [0, -120])
   const contentOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 0])
+  // Under reduced motion, bind still values rather than dropping the style:
+  // Framer leaves the last scroll-driven value inline when a style key goes
+  // away, which stranded the mobile hero at opacity 0.
+  const stillY = useMotionValue(0)
+  const stillOpacity = useMotionValue(1)
+  const heroY = reducedMotion ? stillY : contentY
+  const heroOpacity = reducedMotion ? stillOpacity : contentOpacity
 
   return (
     <section
@@ -75,7 +82,7 @@ export function HomeHero() {
       />
       <div className="scanlines opacity-30" aria-hidden="true" />
 
-      {/* HUD corner telemetry — frames the whole viewport */}
+      {/* One corner of telemetry — the season. The headline does the rest. */}
       <div
         className="absolute pointer-events-none hidden md:block"
         aria-hidden="true"
@@ -84,21 +91,12 @@ export function HomeHero() {
         <span className="absolute top-0 left-0 type-label" style={{ color: 'var(--text-lo)' }}>
           {`SZN ${seasonTag()} // ACTIVE`}
         </span>
-        <HudLabel track color="var(--text-lo)" className="absolute top-0 right-0">
-          SIGNAL
-        </HudLabel>
-        <span className="absolute bottom-0 left-0 type-label" style={{ color: 'var(--text-lo)' }}>
-          {DATA_CONFIG.club.fullName.toUpperCase()}
-        </span>
-        <span className="absolute bottom-0 right-0 type-label" style={{ color: 'var(--text-lo)' }}>
-          EST. 2025 // BROADCAST 01
-        </span>
       </div>
 
       {/* Content */}
       <motion.div
         className="relative z-10 px-gutter w-full max-w-7xl mx-auto"
-        style={reducedMotion ? undefined : { y: contentY, opacity: contentOpacity }}
+        style={{ y: heroY, opacity: heroOpacity }}
       >
         <div className="mb-6">
           <HudLabel live>
@@ -168,7 +166,7 @@ export function HomeHero() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.8, duration: 0.8 }}
-        style={reducedMotion ? undefined : { opacity: contentOpacity }}
+        style={{ opacity: heroOpacity }}
         aria-hidden="true"
       >
         <span className="type-label" style={{ color: 'var(--text-lo)' }}>

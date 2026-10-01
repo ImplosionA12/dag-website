@@ -82,9 +82,16 @@ export function PinnedScene({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, refreshDeps)
 
+  // The outer div is React-owned and never pinned. GSAP's pin-spacer wraps
+  // the inner div inside it, so when React unmounts this scene (e.g. the
+  // viewport drops under 768px) it removes the outer node from a parent it
+  // still owns. Without it, React tries to remove the inner div from the
+  // pin-spacer's parent before ctx.revert() has run, and the page crashes.
   return (
-    <div ref={ref} className={className}>
-      {children}
+    <div>
+      <div ref={ref} className={className}>
+        {children}
+      </div>
     </div>
   )
 }

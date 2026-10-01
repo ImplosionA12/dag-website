@@ -93,7 +93,7 @@ supabase/              schema.sql → audit.sql → seed.sql (run in that order)
 - When env vars are empty, the site falls back to mock/empty data and renders `EmptyState`
   ("NO DATA // STANDBY") / `ErrorState` ("SIGNAL LOST"). This is intentional — builds must still succeed
   with no env vars set.
-- Season 1 is the current season. To add S2: update `DATA_CONFIG.seasons` + `currentSeason`.
+- Season 2 is the current season. To add S3: update `DATA_CONFIG.seasons` + `currentSeason`.
 
 ## Environment variables (all `NEXT_PUBLIC_*`, set in Vercel)
 - `NEXT_PUBLIC_SITE_URL` — canonical site URL, no trailing slash (used for SEO/OG/JSON-LD)

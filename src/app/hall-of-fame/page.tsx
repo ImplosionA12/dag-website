@@ -50,7 +50,7 @@ export default function HallOfFamePage() {
           eyebrow="THE SHRINE"
           lines={['HALL OF', 'FAME']}
           outlineLines={[1]}
-          copy="Six trophies. One season. The names that defined the arena live here forever."
+          copy="Six trophies, awarded at the close of every season. The names that defined the arena live here forever."
         />
         <TrophyHall />
       </div>

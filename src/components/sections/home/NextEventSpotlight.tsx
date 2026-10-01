@@ -1,7 +1,7 @@
 'use client'
 
 import { useEvents } from '@/hooks/useEvents'
-import { getNextEvent, daysRemaining, formatDate, GAME_COLORS } from '@/lib/utils'
+import { getNextEvent, daysRemaining, formatDate, seasonTag, GAME_COLORS } from '@/lib/utils'
 import { HudFrame } from '@/components/ui/HudFrame'
 import { HudLabel } from '@/components/ui/HudLabel'
 import { GameBadge } from '@/components/ui/GameBadge'
@@ -12,22 +12,34 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { SkeletonBlock } from '@/components/ui/SkeletonBlock'
 
 /**
- * "UP NEXT" — broadcast spotlight on the next open event.
+ * "UP NEXT" — broadcast spotlight on the next open event. Between events it
+ * replays the latest completed one, so the second scene on Home is never a
+ * standby box.
  */
 export function NextEventSpotlight() {
   const { data: events, loading } = useEvents()
   const nextEvent = events ? getNextEvent(events) : null
   const days = nextEvent ? daysRemaining(nextEvent.date) : null
+  const lastEvent =
+    !nextEvent && events
+      ? events
+          .filter(e => e.status === 'completed')
+          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0] ?? null
+      : null
 
   return (
     <section className="relative px-gutter py-section">
       <div className="max-w-6xl mx-auto">
         <SectionReveal>
           <div className="flex items-baseline justify-between mb-10">
-            <HudLabel live>UP NEXT // TRANSMISSION</HudLabel>
-            <span className="type-label hidden sm:block" style={{ color: 'var(--text-lo)' }}>
-              FEED 02
-            </span>
+            <HudLabel live={Boolean(nextEvent)}>
+              {nextEvent || !lastEvent ? 'UP NEXT // TRANSMISSION' : 'LATEST EVENT // REPLAY'}
+            </HudLabel>
+            {lastEvent && (
+              <span className="type-label hidden sm:block" style={{ color: 'var(--text-lo)' }}>
+                NEXT EVENT TBA
+              </span>
+            )}
           </div>
         </SectionReveal>
 
@@ -88,6 +100,29 @@ export function NextEventSpotlight() {
                     {days === 0 ? 'LIVE TODAY' : days === 1 ? 'DAY REMAINING' : 'DAYS REMAINING'}
                   </span>
                 </div>
+              </div>
+            </HudFrame>
+          </SectionReveal>
+        ) : lastEvent ? (
+          <SectionReveal>
+            <HudFrame className="p-8 md:p-12" tl="COMPLETED" br={`SZN ${seasonTag(lastEvent.season)}`}>
+              <div className="flex flex-wrap items-center gap-3 mb-5">
+                <GameBadge game={lastEvent.game_type} size="md" />
+                <span className="type-label" style={{ color: 'var(--text-lo)' }}>
+                  {lastEvent.event_type.toUpperCase()}
+                </span>
+              </div>
+              <h2 className="type-h2 mb-4" style={{ color: 'var(--text-hi)' }}>
+                {lastEvent.event_name}
+              </h2>
+              <p className="type-body mb-8 max-w-xl" style={{ color: 'var(--text-mid)' }}>
+                {lastEvent.description}
+              </p>
+              <div className="flex flex-wrap items-center gap-5">
+                <GhostButton href="/leaderboards">SEE STANDINGS</GhostButton>
+                <span className="type-hud" style={{ color: 'var(--text-mid)' }}>
+                  {formatDate(lastEvent.date)}
+                </span>
               </div>
             </HudFrame>
           </SectionReveal>

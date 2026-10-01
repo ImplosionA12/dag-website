@@ -47,8 +47,9 @@ function PodiumBlock({ entry, position, delay }: PodiumBlockProps) {
             fontFamily: 'var(--font-display)',
             fontWeight: 800,
             fontSize: isFirst ? 'clamp(1.8rem, 3.4vw, 2.6rem)' : 'clamp(1.4rem, 2.6vw, 2rem)',
-            textTransform: 'uppercase',
-            lineHeight: 1,
+            // Gamer tags keep their own casing — UrFragileHand, not URFRAGILEHAND
+            lineHeight: 1.05,
+            overflowWrap: 'anywhere',
             color: 'var(--text-hi)',
           }}
         >

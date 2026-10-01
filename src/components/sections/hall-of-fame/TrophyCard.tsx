@@ -16,7 +16,7 @@ interface TrophyCardProps {
 
 /**
  * Hall of Fame plaque. Claimed = gold-framed trophy; unclaimed = a dark
- * outlined slot — "UNCLAIMED" is a designed absence, not an error.
+ * outlined slot — "UP FOR GRABS" is a designed absence, not an error.
  */
 export function TrophyCard({ category, icon, description, entry, index }: TrophyCardProps) {
   const claimed = Boolean(entry && entry.player_name)
@@ -44,7 +44,7 @@ export function TrophyCard({ category, icon, description, entry, index }: Trophy
           {description}
         </p>
         <span className="type-label mt-auto" style={{ color: 'var(--text-lo)', letterSpacing: '0.26em' }}>
-          UNCLAIMED // SZN {seasonTag()}
+          UP FOR GRABS // SZN {seasonTag()}
         </span>
       </div>
     )

@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 import { useEvents } from '@/hooks/useEvents'
-import { getNextEvent, daysRemaining, formatDate } from '@/lib/utils'
+import { getNextEvent, daysRemaining, formatDate, seasonTag } from '@/lib/utils'
 import { DATA_CONFIG } from '@/config/data'
 
 function buildTickerContent(text: string): string {
@@ -19,8 +19,9 @@ export function SeasonTicker() {
 
     if (events && events.length > 0) {
       const nextEvent = getNextEvent(events)
-      const totalEvents = events.length
-      const season = DATA_CONFIG.club.currentSeason
+      // Same definition as SeasonStats so the ticker and BY THE NUMBERS agree
+      const eventsHeld = events.filter(e => e.status === 'completed').length
+      const season = seasonTag()
 
       if (nextEvent) {
         const days = daysRemaining(nextEvent.date)
@@ -29,13 +30,13 @@ export function SeasonTicker() {
           `SEASON ${season} ACTIVE`,
           `NEXT: ${nextEvent.event_name.toUpperCase()} — ${daysStr}`,
           `DATE: ${formatDate(nextEvent.date)}`,
-          `TOTAL EVENTS: ${totalEvents}`,
+          `EVENTS HELD: ${eventsHeld}`,
         ].join('  //  ')
       } else {
         tickerText = [
           `SEASON ${season} ACTIVE`,
-          `TOTAL EVENTS: ${totalEvents}`,
-          `ALL BATTLES COMPLETED`,
+          `EVENTS HELD: ${eventsHeld}`,
+          `NEXT EVENT TBA`,
         ].join('  //  ')
       }
     } else {
