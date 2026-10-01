@@ -27,6 +27,7 @@ export interface Event {
   register_url: string
   game_type: GameType
   recording_url?: string  // YouTube or Drive link — present for workshops/screenings
+  poster_url?: string     // Poster/screenshot; absent → generated cover art
 }
 
 export interface LeaderboardEntry {
@@ -55,6 +56,8 @@ export interface Member {
   isFounder: boolean
   isPresident?: boolean
   note?: string
+  /** Absent → generated tile */
+  photoUrl?: string
   socials?: {
     instagram?: string
     discord?: string

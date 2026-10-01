@@ -38,9 +38,10 @@ function WingPanel({ wing }: { wing: (typeof WINGS)[number] }) {
       </span>
       <h3
         className="type-display mb-6"
+        // Solid, lit wordmarks — a 1.5px outline on void read as faded
         style={{
-          color: 'transparent',
-          WebkitTextStroke: `1.5px ${wing.accent}`,
+          color: wing.accent,
+          textShadow: `0 0 36px color-mix(in srgb, ${wing.accent} 45%, transparent)`,
         }}
       >
         {wing.title}

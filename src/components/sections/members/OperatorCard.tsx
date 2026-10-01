@@ -3,6 +3,7 @@
 import { Member } from '@/types'
 import { GameBadge } from '@/components/ui/GameBadge'
 import { HudFrame } from '@/components/ui/HudFrame'
+import { MemberPortrait } from '@/components/ui/MemberPortrait'
 
 interface OperatorCardProps {
   member: Member
@@ -10,59 +11,47 @@ interface OperatorCardProps {
 }
 
 /**
- * Character-select card. The president's tag is a gold victory marker;
- * everyone else runs zone-accent.
+ * Character-select card — portrait first. Role tags run zone-accent; gold is
+ * reserved for victory, and a committee role is not a win.
  */
 export function OperatorCard({ member, index }: OperatorCardProps) {
-  const initials = member.name
-    .split(' ')
-    .map(part => part[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase()
-
   return (
     <HudFrame
       className="operator-card relative flex flex-col p-7 h-full transition-transform duration-300"
       tl={`SLOT ${String(index + 1).padStart(2, '0')}`}
     >
-      <div className="flex items-start justify-between gap-4 pt-4 mb-6">
-        {/* Initials block — avatar stand-in */}
-        <span
-          aria-hidden="true"
-          className="diag flex items-center justify-center"
-          style={{
-            width: 56,
-            height: 56,
-            background: 'var(--surface-3)',
-            border: '1px solid var(--line-2)',
-            fontFamily: 'var(--font-display)',
-            fontWeight: 800,
-            fontSize: '1.3rem',
-            color: 'var(--zone-accent)',
-          }}
-        >
-          {initials}
-        </span>
+      <div className="relative mt-4 mb-6">
+        <MemberPortrait
+          name={member.name}
+          games={member.games}
+          photoUrl={member.photoUrl}
+          className="aspect-[4/3]"
+        />
 
-        <div className="flex flex-col items-end gap-1.5">
-          {member.isPresident && (
-            <span
-              className="type-label px-2 py-0.5"
-              style={{ background: 'var(--gold-400)', color: 'var(--void)' }}
-            >
-              PRESIDENT
-            </span>
-          )}
-          {member.isFounder && (
-            <span
-              className="type-label px-2 py-0.5"
-              style={{ border: '1px solid var(--zone-accent)', color: 'var(--zone-accent)' }}
-            >
-              FOUNDER
-            </span>
-          )}
-        </div>
+        {(member.isPresident || member.isFounder) && (
+          <div className="absolute top-3 right-3 flex flex-col items-end gap-1.5">
+            {member.isPresident && (
+              <span
+                className="type-label px-2 py-0.5"
+                style={{ background: 'var(--zone-accent)', color: 'var(--void)' }}
+              >
+                PRESIDENT
+              </span>
+            )}
+            {member.isFounder && (
+              <span
+                className="type-label px-2 py-0.5"
+                style={{
+                  border: '1px solid var(--zone-accent)',
+                  color: 'var(--text-hi)',
+                  background: 'rgba(5,4,8,0.6)',
+                }}
+              >
+                FOUNDER
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       <h3

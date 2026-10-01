@@ -10,6 +10,7 @@ import { GhostButton } from '@/components/ui/GhostButton'
 import { SectionReveal } from '@/components/ui/SectionReveal'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { SkeletonBlock } from '@/components/ui/SkeletonBlock'
+import { EventCover } from '@/components/ui/EventCover'
 
 /**
  * "UP NEXT" — broadcast spotlight on the next open event. Between events it
@@ -105,24 +106,29 @@ export function NextEventSpotlight() {
           </SectionReveal>
         ) : lastEvent ? (
           <SectionReveal>
-            <HudFrame className="p-8 md:p-12" tl="COMPLETED" br={`SZN ${seasonTag(lastEvent.season)}`}>
-              <div className="flex flex-wrap items-center gap-3 mb-5">
-                <GameBadge game={lastEvent.game_type} size="md" />
-                <span className="type-label" style={{ color: 'var(--text-lo)' }}>
-                  {lastEvent.event_type.toUpperCase()}
-                </span>
-              </div>
-              <h2 className="type-h2 mb-4" style={{ color: 'var(--text-hi)' }}>
-                {lastEvent.event_name}
-              </h2>
-              <p className="type-body mb-8 max-w-xl" style={{ color: 'var(--text-mid)' }}>
-                {lastEvent.description}
-              </p>
-              <div className="flex flex-wrap items-center gap-5">
-                <GhostButton href="/leaderboards">SEE STANDINGS</GhostButton>
-                <span className="type-hud" style={{ color: 'var(--text-mid)' }}>
-                  {formatDate(lastEvent.date)}
-                </span>
+            <HudFrame className="p-5 md:p-8" tl="COMPLETED" br={`SZN ${seasonTag(lastEvent.season)}`}>
+              <div className="grid md:grid-cols-[1.25fr_1fr] gap-8 md:gap-12 items-center pt-4">
+                <EventCover event={lastEvent} className="aspect-[16/9] md:order-2" />
+                <div className="md:order-1 md:pl-4">
+                  <div className="flex flex-wrap items-center gap-3 mb-5">
+                    <GameBadge game={lastEvent.game_type} size="md" />
+                    <span className="type-label" style={{ color: 'var(--text-lo)' }}>
+                      {lastEvent.event_type.toUpperCase()}
+                    </span>
+                  </div>
+                  <h2 className="type-h2 mb-4" style={{ color: 'var(--text-hi)' }}>
+                    {lastEvent.event_name}
+                  </h2>
+                  <p className="type-body mb-8 max-w-xl" style={{ color: 'var(--text-mid)' }}>
+                    {lastEvent.description}
+                  </p>
+                  <div className="flex flex-wrap items-center gap-5">
+                    <GhostButton href="/leaderboards">SEE STANDINGS</GhostButton>
+                    <span className="type-hud" style={{ color: 'var(--text-mid)' }}>
+                      {formatDate(lastEvent.date)}
+                    </span>
+                  </div>
+                </div>
               </div>
             </HudFrame>
           </SectionReveal>

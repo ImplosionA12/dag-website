@@ -59,7 +59,7 @@ async function fetchRows(url: string, label: string): Promise<Record<string, str
 
 /**
  * Expected columns (any order):
- * id | event_name | date | description | season | status | event_type | register_url | game_type | recording_url
+ * id | event_name | date | description | season | status | event_type | register_url | game_type | recording_url | poster_url
  */
 export function rowToEvent(row: Record<string, string>): Event | null {
   if (!row.id || !row.event_name || !row.date || !row.status) {
@@ -80,13 +80,14 @@ export function rowToEvent(row: Record<string, string>): Event | null {
     register_url:  row.register_url,
     game_type:     toGame(row.game_type),
     recording_url: row.recording_url && /^https?:\/\//.test(row.recording_url) ? row.recording_url : undefined,
+    poster_url:    row.poster_url && /^https:\/\//.test(row.poster_url) ? row.poster_url : undefined,
   }
 }
 
 async function fetchEventsFromSupabase(): Promise<Event[]> {
   const { data, error } = await getSupabase()!
     .from('events')
-    .select('id, event_name, date, description, season, status, event_type, register_url, game_type, recording_url')
+    .select('id, event_name, date, description, season, status, event_type, register_url, game_type, recording_url, poster_url')
     .order('date', { ascending: false })
 
   if (error) throw new Error(`[feeds/events] Supabase: ${error.message}`)
@@ -310,7 +311,7 @@ export async function fetchMembersFeed(): Promise<Member[] | null> {
 
   const { data, error } = await supabase
     .from('members')
-    .select('name, role, games, is_founder, is_president, note, instagram, discord, position')
+    .select('name, role, games, is_founder, is_president, note, instagram, discord, position, photo_url')
     .order('position', { ascending: true })
     .order('name', { ascending: true })
 
@@ -323,6 +324,7 @@ export async function fetchMembersFeed(): Promise<Member[] | null> {
     isFounder:   Boolean(row.is_founder),
     isPresident: Boolean(row.is_president),
     note:        row.note ?? undefined,
+    photoUrl:    row.photo_url && /^https:\/\//.test(row.photo_url) ? row.photo_url : undefined,
     // Omitted entirely when neither handle is set, so the card does not render an empty
     // socials row for a member who has none.
     socials:

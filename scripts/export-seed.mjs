@@ -81,10 +81,11 @@ const out = [
   '-- Poll votes are not exported. voter_key is readable by no role, and a live tally is not',
   '-- seed data.',
   '',
-  block('events', { table: 'events', list: 'id, event_name, date, description, season, status, event_type, register_url, game_type, recording_url' }, events,
-    e => `  (${[nullable(e.id), text(e.event_name), nullable(e.date), text(e.description), text(e.season), text(e.status), text(e.event_type), text(e.register_url), text(e.game_type), nullable(e.recording_url)].join(', ')})`,
+  block('events', { table: 'events', list: 'id, event_name, date, description, season, status, event_type, register_url, game_type, recording_url, poster_url' }, events,
+    e => `  (${[nullable(e.id), text(e.event_name), nullable(e.date), text(e.description), text(e.season), text(e.status), text(e.event_type), text(e.register_url), text(e.game_type), nullable(e.recording_url), nullable(e.poster_url)].join(', ')})`,
     'id',
-    'event_name = excluded.event_name, date = excluded.date, description = excluded.description,\n  season = excluded.season, status = excluded.status, event_type = excluded.event_type,\n  register_url = excluded.register_url, game_type = excluded.game_type, recording_url = excluded.recording_url'),
+    'event_name = excluded.event_name, date = excluded.date, description = excluded.description,\n  season = excluded.season, status = excluded.status, event_type = excluded.event_type,\n  register_url = excluded.register_url, game_type = excluded.game_type, recording_url = excluded.recording_url,
+  poster_url = excluded.poster_url'),
 
   block('leaderboard rows', { table: 'leaderboards', list: 'id, event_name, season, rank, player_name, points, game_type, team_name' }, leaderboards,
     r => `  (${[nullable(r.id), text(r.event_name), text(r.season), r.rank, text(r.player_name), r.points, text(r.game_type), nullable(r.team_name)].join(', ')})`,
@@ -106,10 +107,11 @@ const out = [
     'poll_id, id',
     'label = excluded.label, position = excluded.position'),
 
-  block('members', { table: 'members', list: 'name, role, games, is_founder, is_president, note, instagram, discord, position' }, members,
-    m => `  (${[text(m.name), text(m.role), array(m.games), bool(m.is_founder), bool(m.is_president), nullable(m.note), nullable(m.instagram), nullable(m.discord), m.position ?? 0].join(', ')})`,
+  block('members', { table: 'members', list: 'name, role, games, is_founder, is_president, note, instagram, discord, position, photo_url' }, members,
+    m => `  (${[text(m.name), text(m.role), array(m.games), bool(m.is_founder), bool(m.is_president), nullable(m.note), nullable(m.instagram), nullable(m.discord), m.position ?? 0, nullable(m.photo_url)].join(', ')})`,
     'name',
-    'role = excluded.role, games = excluded.games, is_founder = excluded.is_founder,\n  is_president = excluded.is_president, note = excluded.note,\n  instagram = excluded.instagram, discord = excluded.discord, position = excluded.position'),
+    'role = excluded.role, games = excluded.games, is_founder = excluded.is_founder,\n  is_president = excluded.is_president, note = excluded.note,\n  instagram = excluded.instagram, discord = excluded.discord, position = excluded.position,
+  photo_url = excluded.photo_url'),
 ].join('\n')
 
 writeFileSync('supabase/seed.sql', out)

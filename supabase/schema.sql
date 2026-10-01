@@ -31,6 +31,10 @@ create table if not exists public.events (
 
 create index if not exists events_date_idx on public.events (date desc);
 
+-- Optional poster or screenshot. Upload to the public 'media' bucket and paste its public URL.
+-- Empty means the site draws generated cover art for the event instead.
+alter table public.events add column if not exists poster_url text;
+
 -- ─── Leaderboards ────────────────────────────────────────────────────────────
 
 create table if not exists public.leaderboards (
@@ -91,6 +95,15 @@ create table if not exists public.members (
 );
 
 create index if not exists members_position_idx on public.members (position, name);
+
+-- Optional photo, same 'media' bucket. Empty means a generated tile in the member's game colours.
+alter table public.members add column if not exists photo_url text;
+
+-- Public bucket for posters and photos. Public means anyone can read a file by URL; only
+-- maintainers signed in to Studio can upload.
+insert into storage.buckets (id, name, public)
+values ('media', 'media', true)
+on conflict (id) do nothing;
 
 -- ─── Contributors ────────────────────────────────────────────────────────────
 

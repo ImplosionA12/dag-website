@@ -5,7 +5,7 @@ import { useEvents } from '@/hooks/useEvents'
 import { GameType } from '@/types'
 import { splitEvents, GAME_COLORS, GAME_LABELS } from '@/lib/utils'
 import { MissionCard } from './MissionCard'
-import { DebriefRow } from './DebriefRow'
+import { DebriefCard } from './DebriefCard'
 import { HudLabel } from '@/components/ui/HudLabel'
 import { SectionReveal } from '@/components/ui/SectionReveal'
 import { EmptyState } from '@/components/ui/EmptyState'
@@ -205,10 +205,10 @@ export function MissionSelect() {
             </SectionReveal>
 
             {past.length > 0 ? (
-              <div style={{ borderTop: '1px solid var(--line-1)' }}>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-4">
                 {past.map((event, i) => (
-                  <SectionReveal key={event.id} delay={Math.min(i * 0.04, 0.3)}>
-                    <DebriefRow event={event} />
+                  <SectionReveal key={event.id} delay={Math.min(i * 0.04, 0.3)} className="h-full">
+                    <DebriefCard event={event} />
                   </SectionReveal>
                 ))}
               </div>

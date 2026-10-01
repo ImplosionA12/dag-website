@@ -41,14 +41,15 @@
   --rank-bronze: #CD7F32;
 
   /* ── HUD lines — broadcast framing is drawn with these ────────────────── */
-  --line-1:  rgba(242, 238, 248, 0.08);
-  --line-2:  rgba(242, 238, 248, 0.16);
+  --line-1:  rgba(242, 238, 248, 0.11);
+  --line-2:  rgba(242, 238, 248, 0.20);
   --bracket: rgba(242, 238, 248, 0.38);
 
   /* ── Text ──────────────────────────────────────────────────────────────── */
+  /* On --void: mid 9.3:1, lo 5.2:1 — both clear WCAG AA for small HUD labels */
   --text-hi:  #F2EEF8;
-  --text-mid: #9A92A8;
-  --text-lo:  #5F5A6B;
+  --text-mid: #B3ACC0;
+  --text-lo:  #837D92;
 
   /* ── Zone theming — pages override via [data-zone] ────────────────────── */
   --zone-accent: var(--violet-300);
@@ -437,15 +438,41 @@ body {
   }
 }
 
-.standings-row,
-.debrief-row {
+.standings-row {
   transition: background 0.15s ease, transform 0.15s ease;
 }
 
-.standings-row:hover,
-.debrief-row:hover {
+.standings-row:hover {
   background: var(--zone-faint);
   transform: translateX(4px);
+}
+
+/* Archive poster card — the whole card is the link (see .stretched-link) */
+.debrief-card {
+  background: var(--surface-1);
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.debrief-cover {
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.debrief-card:hover,
+.debrief-card:focus-within {
+  border-color: var(--line-2) !important;
+  background: var(--surface-2);
+}
+
+@media (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .debrief-card:hover .debrief-cover {
+    transform: scale(1.04);
+  }
+}
+
+.stretched-link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
 }
 
 /* ─── Skeleton Loading ──────────────────────────────────────────────────── */

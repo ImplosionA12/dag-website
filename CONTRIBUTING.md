@@ -42,6 +42,17 @@ The tables:
 The database refuses values it doesn't allow (say, a `game_type` of `valorant` in lowercase).
 If a save fails, read the error. It'll name the column that's wrong.
 
+### Adding a poster or photo
+
+Every event and member already gets generated artwork. A real picture replaces it:
+
+1. Studio → **Storage** → bucket **media** → upload the file (JPG or PNG, under 1 MB,
+   landscape 16:9 for posters, 4:3 for member photos).
+2. Click the file → **Get URL** → copy it.
+3. Paste it into the event's `poster_url` or the member's `photo_url`.
+
+Only `https://` links are shown. Clear the field to go back to the generated art.
+
 ---
 
 ## 2. Changing code

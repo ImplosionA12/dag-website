@@ -14,6 +14,7 @@ import {
 } from '@/lib/utils'
 import { Event } from '@/types'
 import { HudFrame } from '@/components/ui/HudFrame'
+import { EventCover } from '@/components/ui/EventCover'
 import { HudLabel } from '@/components/ui/HudLabel'
 import { DisplayHeading } from '@/components/ui/DisplayHeading'
 import { GameBadge } from '@/components/ui/GameBadge'
@@ -154,6 +155,8 @@ export default async function EventDetailPage({ params }: { params: { slug: stri
               ◂ MISSION SELECT
             </Link>
           </div>
+
+          <EventCover event={event} className="aspect-[16/9] md:aspect-[21/9] mb-10" />
 
           <div className="mb-5">
             <HudLabel live={isOpen} color={accent}>
