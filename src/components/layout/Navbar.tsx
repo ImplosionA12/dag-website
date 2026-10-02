@@ -199,7 +199,8 @@ export function Navbar() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
             className="fixed inset-0 z-menu md:hidden flex flex-col justify-center"
-            style={{ backgroundColor: 'rgba(5, 4, 8, 0.98)' }}
+            // Fully opaque: at 0.98 the hero headline ghosted through behind the links
+            style={{ backgroundColor: 'var(--void)' }}
           >
             <p
               className="type-label px-8 mb-8"
